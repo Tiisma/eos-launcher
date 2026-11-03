@@ -1,10 +1,12 @@
 # The Exiles of Shadowland - Launcher: Privacy Policy
 
-Last updated: 2026-11-03
+Last updated: 2026-11-03 (revised after the security review)
 
 This policy explains what information **The Exiles of Shadowland - Launcher** (the "launcher") handles, and what the server's gate, the part of The Exiles of Shadowland game server the launcher talks to, keeps about you. The launcher is a fork of [RiftLauncher](https://github.com/StratumServer/RiftLauncher), maintained for The Exiles of Shadowland roleplay server. Its source code is at [github.com/Tiisma/eos-launcher](https://github.com/Tiisma/eos-launcher), and the gate's at [github.com/Tiisma/eos-gate](https://github.com/Tiisma/eos-gate).
 
 It does not cover Vintage Story, the Vintage Story websites, the ModDB, GitHub, Discord, or any other service the launcher opens or contacts. Those services have their own policies and control the data they receive.
+
+**Who is responsible.** The data the gate keeps is held by the administration of The Exiles of Shadowland server, which you reach through the staff on its Discord. Linking requires a Discord account, so you must be old enough to use Discord where you live.
 
 ## Information stored on your device
 
@@ -12,11 +14,13 @@ The launcher keeps its configuration, logs and caches in `%APPDATA%\EoSLauncher`
 
 **Vintage Story account.** If you sign in, the launcher sends the email address, password and optional two-factor code you enter to the official Vintage Story account service at `auth3.vintagestory.at` over HTTPS. The password and two-factor code are only held in memory for that request and are never written to disk or to the logs. The response gives your player name, player UID, entitlements and session credentials. The non-secret profile is stored in the configuration; the session key, session signature and multiplayer token are stored encrypted, using the operating system's secure storage through Electron. When you play, the launcher writes the profile and session fields the game needs into the installation's `clientsettings.json`, as the official launcher would; from there they belong to the game installation.
 
-**Discord link.** When you link Discord, the launcher stores the launcher token the gate gives it, and your Discord display name, in an encrypted file (`sombreterre-gate.bin`) using the same secure storage. On a computer without secure storage, the token is kept in memory only and you link again the next time the launcher starts. Unlinking deletes the file and asks the gate to revoke the token.
+**Discord link.** When you link Discord, the launcher briefly listens on your own computer's loopback address (`127.0.0.1`, unreachable from the network) so your browser can hand the result back to it; the listener closes as soon as linking ends. The launcher then stores the launcher token the gate gives it, and your Discord display name, in an encrypted file (`sombreterre-gate.bin`) using the same secure storage. On a computer without secure storage, the token is kept in memory only and you link again the next time the launcher starts. **Unlink Discord** deletes the file and revokes that token on the gate; it does not remove the link between your Discord and game accounts kept by the gate (see below).
 
 **Launch ticket.** Right before the game starts, the launcher writes a single-use launch ticket to `ModConfig\sombreterre-ticket.json` in the installation. The game's `sombreterregate` client mod reads it, sends it to the game server and deletes the file.
 
 **Logs.** Logs contain operational messages and errors. Recognized passwords, tokens, authorization values and file paths are redacted before writing, but review a log before sharing it. The launcher never uploads logs.
+
+**Mods run code on your computer.** Pressing Play installs the mods the server lists. Like any Vintage Story mod, they are programs that run with your user's rights when the game starts. The launcher checks every archive against the SHA-256 the server publishes, which proves you got what the server lists, not that what it lists is harmless. Only play on a server you trust.
 
 ## Requests to external services
 
@@ -36,7 +40,10 @@ The gate runs on The Exiles of Shadowland game server and is operated by its sta
 
 - your **Discord user ID and display name**, and a **SHA-256 digest of your launcher token** (never the token itself), to recognize your launcher;
 - the **link between your Discord user ID and your Vintage Story player UID**, created the first time you join through the launcher;
-- launch tickets, in memory only, for at most ten minutes.
+- launch tickets, in memory only, for at most ten minutes;
+- an **audit trail** of security events (a launcher linked, a first join, a refused join, a revocation), with your Discord user ID, player name and UID and, for links, your IP address, in the server's log and in a staff-only Discord channel.
+
+When a launcher is linked to your Discord account, the server's bot sends you a direct message, so a link you did not make does not go unnoticed. The reverse proxy in front of the gate logs each request (time, IP address, path) in files kept on the server and rotated after about 100 MB.
 
 It reads your membership of the server's Discord guild and your roles through the server's Discord bot, to decide whether you may play. It does not receive your Discord password, email address or messages through the launcher. The game server and its Discord bot keep their own logs, such as connections and the in-game chat relayed to Discord; those are the server's, not the launcher's.
 
@@ -48,7 +55,7 @@ It has no advertising, telemetry, analytics or crash reporting. It does not sell
 
 Local data stays on your device until you remove it. Use the account controls to sign out of Vintage Story, and **Unlink Discord** to revoke and delete the launcher token. To remove everything else, close the launcher and delete `%APPDATA%\EoSLauncher` (this also removes the game installed by the launcher).
 
-To have your Discord link or launcher tokens removed from the gate, ask the server staff on The Exiles of Shadowland Discord.
+On the gate, a launcher token stops working and is deleted after 60 days without use, and as soon as you unlink or the staff revokes it. The link between your Discord and game accounts stays until the staff removes it. To see what the gate holds about you, or to have your link, tokens and audit entries removed, ask the server staff on The Exiles of Shadowland Discord.
 
 ## Security
 
