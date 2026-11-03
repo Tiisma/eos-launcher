@@ -8,6 +8,7 @@ import "./helpers/electronMock"
 import { setElectronPath, setElectronUserDataPath } from "./helpers/electronMock"
 
 import { hostRid, optimumManifestFileName } from "@domain/optimum/plan"
+import { SOMBRETERRE_PROFILE } from "@domain/sombreterre/profile"
 
 /**
  * src/ipc/optimumManifest.ts, the session's copy of Optimum's overlay manifest.
@@ -99,7 +100,7 @@ describe("getOptimumManifest", () => {
     assert.deepEqual(result.manifest.supportedGameVersions, ["1.22.7"])
     assert.equal(result.manifest.archiveFileName, `Optimum-v0.3.14-${RID}-overlay.tar.gz`)
     assert.equal(result.manifest.downloadUrl, `https://github.com/StratumServer/Optimum/releases/download/v0.3.14/Optimum-v0.3.14-${RID}-overlay.tar.gz`)
-    assert.equal(vi.mocked(runDownload).mock.calls[0]?.[0].url, `https://github.com/StratumServer/Optimum/releases/latest/download/${optimumManifestFileName(RID!)}`)
+    assert.equal(vi.mocked(runDownload).mock.calls[0]?.[0].url, `https://github.com/StratumServer/Optimum/releases/download/v${SOMBRETERRE_PROFILE.optimumVersion}/${optimumManifestFileName(RID!)}`)
     // The hash, the file list and the donors stay on this side of the bridge.
     assert.deepEqual(Object.keys(result.manifest).sort(), ["archiveFileName", "downloadFolder", "downloadUrl", "optimumVersion", "supportedGameVersions"])
   })
