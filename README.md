@@ -4,7 +4,7 @@
 
 # The Exiles of Shadowland - Launcher
 
-The launcher for **The Exiles of Shadowland**, a Vintage Story roleplay server. One button gets a player onto the server: it installs the right game, keeps the server's mods in sync and connects straight to the server.
+The launcher for **The Exiles of Shadowland**, a Vintage Story roleplay server. One button gets a player onto the server: it installs the right game, keeps the server's mods in sync and opens the game on the server's own menu, one click from the server.
 
 > [!NOTE]
 > The server is in **Early Access**. The launcher is unofficial and not affiliated with Anego Studios, the developers of [Vintage Story](https://www.vintagestory.at).
@@ -26,8 +26,8 @@ The launcher keeps everything in `%APPDATA%\EoSLauncher` (the game, its folder, 
 
 - **Pinned game version**: Vintage Story 1.22.7 with Optimum 0.3.22, both moved only when the server moves.
 - **Server mod pack**: the server publishes its pack; the launcher downloads public mods from the ModDB and the server's own mods from the server, checks every archive's SHA-256, and only removes files it installed itself.
-- **Discord whitelist**: the launcher is linked to a Discord account once. The server only lets in players whose Discord account holds the whitelist role, and a single-use launch ticket proves each connection came from the launcher, so no command is ever typed in game.
-- **Straight to the server**: the game starts connected to the server, without its main menu.
+- **Discord whitelist**: the launcher is linked to a Discord account once. The server only lets in players whose Discord account holds the whitelist role, and a launch ticket proves each connection came from the launcher, so no command is ever typed in game.
+- **The server's main menu**: the game opens on a menu with only Play, Settings and Quit, over the server's backgrounds. Play joins the server; the player can change settings (the language, say) first.
 - **Players online** on the home screen.
 
 The server side of this (the Discord bot, the whitelist gate and the pack) lives in a separate repository, `Tiisma/eos-gate`.

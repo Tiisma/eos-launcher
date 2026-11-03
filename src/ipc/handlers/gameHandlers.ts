@@ -9,6 +9,7 @@ import { logMessage, getErrorMessage } from "@src/utils/logManager"
 import { writeJsonAtomic } from "@src/ipc/atomicJsonFile"
 import { IPC_CHANNELS } from "@src/ipc/ipcChannels"
 import { assertTrustedIpcSender } from "@src/ipc/ipcSecurity"
+import { startupHookEnvironment } from "@src/ipc/sombreterreStartupHook"
 import { assertConfiguredInstallationPath, assertManagedPath } from "@src/ipc/pathPolicy"
 import { assertString, comparablePath, parseSafeEnvironment, toWireBuildVariant, validateGameInstallation, validateGameVersion } from "@src/ipc/validation"
 import { createProcessSampler } from "@src/ipc/adapters/processSampler"
@@ -533,7 +534,7 @@ ipcMain.handle(IPC_CHANNELS.GAME_MANAGER.EXECUTE_GAME, async (event, version: un
     outcome = await realGameProcess().run({
       command: plan.command,
       args: plan.args,
-      env: { ...process.env, ...processEnv, ...plan.env },
+      env: { ...process.env, ...processEnv, ...plan.env, ...(await startupHookEnvironment(safeInstallation.path)) },
       cwd: plan.cwd,
       ...(recorder ? { onStarted: recorder.onStarted } : {})
     })

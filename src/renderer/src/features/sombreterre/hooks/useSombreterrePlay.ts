@@ -169,14 +169,15 @@ export function useSombreterrePlay(): SombreterrePlay {
       const synced = await window.api.sombreterre.syncPack(installation.path)
       if (!synced.ok) return fail(`features.sombreterre.syncFailed.${synced.reason}`, { modid: synced.modid ?? "" })
 
-      // Fetched last, right before the game starts: a ticket is single use and expires in minutes.
+      // Fetched last, right before the game starts: an unused ticket expires, and a new one replaces it.
       const ticket = await window.api.sombreterre.prepareLaunch(installation.path)
       if (!ticket.ok) return fail(`features.sombreterre.ticketFailed.${ticket.reason}`)
 
       setPhase("playing")
       await nextFrame()
       const current = latest.current.installations.find((candidate) => candidate.id === installation.id) ?? installation
-      await latest.current.launchGame(current, SERVER_BOOKMARK.id)
+      // Without a server, the game opens on the server's main menu and the player joins from its Play button.
+      await latest.current.launchGame(current, SOMBRETERRE_PROFILE.connectOnLaunch ? SERVER_BOOKMARK.id : undefined)
     } catch (err) {
       window.api.utils.logMessage("error", `${LOG_TAG} Error preparing the game.`)
       window.api.utils.logMessage("debug", `${LOG_TAG} Error preparing the game: ${err}`)
