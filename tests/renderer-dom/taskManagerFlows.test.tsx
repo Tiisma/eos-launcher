@@ -5,7 +5,6 @@ import type { RenderHookResult } from "@testing-library/react"
 
 import { NotificationsProvider, useNotificationsContext } from "@renderer/contexts/NotificationsContext"
 import { ACTIONS, TASK_NOTIFICATION_POLICIES, TaskProvider, taskReducer, useTaskContext } from "@renderer/contexts/TaskManagerContext"
-import { LAUNCHER_UPDATE_TASK_ID } from "@renderer/utils/launcherUpdateTask"
 import type { TaskType } from "@renderer/contexts/TaskManagerContext"
 
 import { expectHookThrowsOutsideProvider } from "./helpers/render"
@@ -596,40 +595,6 @@ describe("late progress ticks on a finished task", () => {
 
     expect(result.current.task.tasks.find((t) => t.id === taskId)).toMatchObject({ progress: 50, status: "failed" })
     expect(result.current.task.tasks).toBe(tasksWhenFailed)
-  })
-
-  it("still lets a retried launcher update run, on a fresh task rather than the failed one", () => {
-    let progressHandler: UpdateProgressCallback | undefined
-    // Both providers subscribe to the error channel, so this is a list: the
-    // task one has to be called even though the notification one subscribed last.
-    const errorHandlers: Array<() => void> = []
-
-    installMockWindowApi({
-      appUpdater: {
-        onUpdateDownloadProgress: vi.fn((callback: UpdateProgressCallback): Unsubscribe => {
-          progressHandler = callback
-          return () => {}
-        }),
-        onUpdateError: vi.fn((callback: () => void): Unsubscribe => {
-          errorHandlers.push(callback)
-          return () => {}
-        })
-      }
-    })
-
-    const { result } = renderTaskProbe()
-
-    act(() => progressHandler?.({ version: "1.7.0-beta.8", progress: 47 }))
-    expect(result.current.task.tasks[0]).toMatchObject({ id: LAUNCHER_UPDATE_TASK_ID, progress: 47, status: "in-progress" })
-
-    act(() => errorHandlers.forEach((callback) => callback()))
-    expect(result.current.task.tasks[0]).toMatchObject({ progress: 47, status: "failed" })
-
-    // The retry offer downloads again under this same id (NotificationsContext).
-    act(() => progressHandler?.({ version: "1.7.0-beta.8", progress: 8 }))
-
-    expect(result.current.task.tasks).toHaveLength(1)
-    expect(result.current.task.tasks[0]).toMatchObject({ id: LAUNCHER_UPDATE_TASK_ID, progress: 8, status: "in-progress" })
   })
 })
 

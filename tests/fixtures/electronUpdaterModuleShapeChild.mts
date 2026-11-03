@@ -9,8 +9,8 @@
 // Reading electron-updater's `autoUpdater` getter (through either path) constructs a real,
 // platform-specific updater, which needs `electron.app` to exist before the module can finish
 // loading. There is no Electron process in this child, so `electron` is stubbed in the CJS
-// require cache before the import runs, the same shape tests/ipc/appUpdaterHandlers.test.ts and
-// tests/main/autoUpdaterEvents.test.ts already stub for `vi.mock("electron", ...)`.
+// require cache before the import runs, the same shape tests/main/updateCheckFailureLog.test.ts
+// stubs there.
 import { createRequire, Module } from "node:module"
 
 const req = createRequire(import.meta.url)
@@ -72,16 +72,8 @@ async function main(): Promise<void> {
   const resolvedAutoUpdater = namedAutoUpdater ?? defaultAutoUpdater
   const resolvedFrom = namedAutoUpdater ? "named" : defaultAutoUpdater ? "default" : "neither"
 
-  // The two module files src/main/newestReleaseProvider.ts loads by their deep paths, because the
-  // package's entry point does not export them. The ".js" is part of the specifier: node's ESM
-  // resolution does not add it.
-  const githubProviderModule = (await import("electron-updater/out/providers/GitHubProvider.js")) as Record<string, unknown>
-  const providerModule = (await import("electron-updater/out/providers/Provider.js")) as Record<string, unknown>
-
   console.log(
     JSON.stringify({
-      githubProviderIsClass: typeof githubProviderModule.GitHubProvider === "function" && /^class\s/.test(Function.prototype.toString.call(githubProviderModule.GitHubProvider)),
-      parseUpdateInfoIsFunction: typeof providerModule.parseUpdateInfo === "function",
       hasOwnNamedAutoUpdater,
       hasDefaultAutoUpdaterDescriptor: Boolean(defaultAutoUpdaterDescriptor),
       resolvedFrom,

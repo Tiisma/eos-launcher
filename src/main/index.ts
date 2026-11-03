@@ -23,12 +23,11 @@ import { IPC_CHANNELS } from "@src/ipc/ipcChannels"
 import { isTrustedIpcSender, registerTrustedWebContents } from "@src/ipc/ipcSecurity"
 import { assertAllowedBrowserUrl, isAllowedRendererUrl, resolveContainedPath } from "@src/ipc/validation"
 import { terminateActiveWorkers } from "@src/ipc/workerManager"
-import { registerAutoUpdaterEvents, scheduleUpdateCheck } from "@src/main/autoUpdaterEvents"
-import { installNewestReleaseProvider } from "@src/main/newestReleaseProvider"
+import { electronUpdaterPort, MandatoryUpdater } from "@src/main/mandatoryUpdater"
+import { publishLauncherUpdateState, setLauncherUpdateActions, setLauncherUpdateSender } from "@src/ipc/handlers/appUpdaterHandlers"
 import { basicPasswordStoreSwitch } from "@domain/account/sessionStorage"
 import { canAutoUpdate } from "@domain/appUpdate/canAutoUpdate"
 import { SOMBRETERRE_PROFILE } from "@domain/sombreterre/profile"
-import { resolveAllowPrerelease } from "@domain/appUpdate/betaUpdates"
 import { pruneModIconCache } from "@src/ipc/adapters/modScan"
 import { pruneModCatalogCache } from "@src/ipc/catalogCache"
 import { IconMemoryCache } from "@domain/mods/iconMemoryCache"
@@ -397,43 +396,37 @@ app.whenReady().then(async () => {
     env: { UPDATE: process.env["UPDATE"], APPIMAGE: process.env["APPIMAGE"] },
     linuxPackageType: process.platform === "linux" ? readLinuxPackageType() : undefined
   })
-  // The inherited feed is upstream RiftLauncher's releases: following it would replace this fork.
+  setLauncherUpdateSender((channel, payload) => {
+    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send(channel, payload)
+  })
   if (!SOMBRETERRE_PROFILE.autoUpdate) {
     logMessage("info", `${LOG_PREFIX} [whenReady] Auto-update disabled by the Sombreterre profile.`)
+  } else if (!app.isPackaged) {
+    // electron-updater does not check from an unpackaged run, so there is nothing to wait for.
+    logMessage("info", `${LOG_PREFIX} [whenReady] Auto-update disabled: not a packaged build.`)
   } else if (updateDecision.ok) {
+    // The update is mandatory (src/main/mandatoryUpdater.ts): Play waits for this first check, so
+    // say so before the updater module has even loaded.
+    publishLauncherUpdateState({ status: "checking" })
     // Not awaited, so the 88.9 ms of require work inside the asar behind loadAutoUpdater stays off this handler
-    // and off the path to the first paint. Nothing downstream of it is time critical: the check
-    // it arms does not go out for another five seconds, and every renderer-facing update channel
-    // refuses to act until an offer has been made through the events registered here.
+    // and off the path to the first paint.
     void loadAutoUpdater()
-      .then(async (autoUpdater) => {
-        // electron-updater's own pick of a prerelease knows alpha and beta and nothing else, so an
-        // -rc tag is skipped by a beta and never followed by a stable release. This swaps in a
-        // provider that takes the newest of stable, beta and rc. If it cannot be set up the stock
-        // provider stays: updates keep working, minus rc support.
-        try {
-          if (!(await installNewestReleaseProvider(autoUpdater))) logMessage("warn", `${LOG_PREFIX} [whenReady] app-update.yml is not a GitHub feed, keeping the stock update provider.`)
-        } catch (error) {
-          logMessage("warn", `${LOG_PREFIX} [whenReady] Could not set up the release provider, keeping the stock one: ${getErrorMessage(error)}.`)
-        }
-
-        registerAutoUpdaterEvents(autoUpdater, (channel, payload) => {
-          if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send(channel, payload)
+      .then((autoUpdater) => {
+        const updater = new MandatoryUpdater({
+          updater: electronUpdaterPort(autoUpdater),
+          runningVersion: app.getVersion(),
+          isBusy: getShouldPreventClose,
+          publish: publishLauncherUpdateState,
+          log: logMessage
         })
-
-        // Who gets offered a beta or an rc, said out loud rather than left to electron-updater, which
-        // reads it off the running version alone: that leaves someone on a stable build with no way to
-        // ask for betas, and someone who tried one beta signed up for every beta after it. The
-        // stored answer wins when there is one, and the running version still decides when there
-        // is not. Read inside the callback, so the answer the check uses is the one the settings
-        // page has stored by then rather than the one it had at launch.
-        scheduleUpdateCheck(autoUpdater, async () => resolveAllowPrerelease((await getConfig()).receiveBetaUpdates, app.getVersion()))
+        setLauncherUpdateActions(updater)
+        updater.start()
       })
       .catch((error: unknown) => {
         // A packaged build missing its own updater is a broken package, not a reason to refuse to
-        // launch: everything else in the app works without it, and this is the only line that
-        // would otherwise have gone unreported now that the import is no longer at module scope.
+        // launch: play stays open, the same as when GitHub cannot be reached.
         logMessage("error", `${LOG_PREFIX} [whenReady] Could not load the auto-updater: ${getErrorMessage(error)}.`)
+        publishLauncherUpdateState({ status: "check-failed" })
       })
   } else {
     logMessage("info", `${LOG_PREFIX} [whenReady] Auto-update disabled: ${updateDecision.reason}.`)

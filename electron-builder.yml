@@ -162,7 +162,14 @@ electronFuses:
   onlyLoadAppFromAsar: true
   loadBrowserProcessSpecificV8Snapshot: false
   grantFileProtocolExtraPrivileges: false
-# No update feed: the inherited one is upstream RiftLauncher's (see src/domain/sombreterre/profile.ts).
-publish: null
+# The update feed is this fork's own GitHub releases: electron-builder writes it into the packaged
+# resources/app-update.yml, which electron-updater reads (src/main/mandatoryUpdater.ts), and names
+# the files of latest.yml after it. Nothing is uploaded from here: the release workflow builds with
+# `--publish never` and attaches the installer, its blockmap and latest.yml to a draft release.
+# electron-updater only follows a published, non-prerelease release.
+publish:
+  provider: github
+  owner: Tiisma
+  repo: eos-launcher
 electronDownload:
   mirror: https://npmmirror.com/mirrors/electron/

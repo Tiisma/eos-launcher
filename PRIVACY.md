@@ -26,10 +26,9 @@ The launcher keeps its configuration, logs and caches in `%APPDATA%\EoSLauncher`
 - **Optimum** (GitHub releases of `StratumServer/Optimum`): the performance patch applied to the game when it is first installed.
 - **Vintage Story ModDB** (`mods.vintagestory.at`, `moddbcdn.vintagestory.at`): details and downloads of the public mods the pack lists.
 - **The game server** (`57.129.112.230`): the game itself connects to it when you press Play.
+- **GitHub** (releases of `Tiisma/eos-launcher`): at startup and every 30 minutes while it is open, the launcher reads the latest release to see whether a newer launcher exists, and downloads it if so. Nothing about you or your account is sent.
 
 These services can receive normal connection metadata, such as your IP address, request times and protocol information. See the [Vintage Story Privacy Policy](https://www.vintagestory.at/privacy/), the [Discord Privacy Policy](https://discord.com/privacy) and the [GitHub General Privacy Statement](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement).
-
-The launcher does not check for its own updates: new versions are installed by hand from the repository's releases.
 
 ## What the gate keeps about you
 
