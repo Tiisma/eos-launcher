@@ -37,7 +37,10 @@ export interface SombreterreProfile {
    * host only, which is what `npm run pack:serve` provides.
    */
   packManifestUrl: string
-  /** Whether the inherited self-update is allowed. Off: the inherited feed is upstream RiftLauncher's. */
+  /**
+   * Whether the launcher updates itself, from this fork's GitHub releases (electron-builder.yml
+   * `publish`). On, the update is mandatory: see src/domain/appUpdate/mandatoryUpdate.ts.
+   */
   autoUpdate: boolean
   /** Whether a first start copies a VS Launcher profile in. Off: its Installations are the player's own, not the server's. */
   importLegacyUserData: boolean
@@ -56,7 +59,7 @@ export const SOMBRETERRE_PROFILE: SombreterreProfile = {
   server: { id: "sombreterre-server", name: "The Exiles of Shadowland", host: "57.129.112.230", port: 42420 },
   gateBaseUrl: "https://eos-gate.duckdns.org:8443/",
   packManifestUrl: "https://eos-gate.duckdns.org:8443/api/pack.json",
-  autoUpdate: false,
+  autoUpdate: true,
   importLegacyUserData: false,
   backgroundPicker: false
 }

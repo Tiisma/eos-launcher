@@ -896,6 +896,18 @@
         "online": "{{online}} / {{max}} players online",
         "offline": "Server unreachable"
       },
+      "launcherUpdate": {
+        "checking": "Checking for a launcher update…",
+        "updating": "Updating the launcher…",
+        "downloading": "Downloading EoS Launcher {{version}}: {{progress}}%",
+        "required": "This update is required to play on the server. Play is available again once it is installed.",
+        "downloadFailed": "EoS Launcher {{version}} could not be downloaded. Check your connection and retry, or download it by hand.",
+        "retry": "Retry",
+        "manualDownload": "Download it by hand",
+        "waitingForGame": "EoS Launcher {{version}} is ready. It installs as soon as the game is closed.",
+        "installing": "EoS Launcher {{version}} is ready. Restarting in {{seconds}} s to install it…",
+        "restartNow": "Restart now"
+      },
       "discord": {
         "link": "Link my Discord",
         "linking": "Waiting for Discord…",

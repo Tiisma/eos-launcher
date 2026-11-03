@@ -3,15 +3,8 @@ declare global {
     (payload: { id: string; progress: number }): void
   }
 
-  /** The update the main process found and is offering, before anything has been downloaded. */
-  type UpdateAvailableCallback = {
-    (payload: { version: string; releaseName?: string }): void
-  }
-
-  /** One tick of the accepted launcher update's download, as a whole percentage. */
-  type UpdateProgressCallback = {
-    (payload: { version: string; progress: number }): void
-  }
+  /** The launcher's own mandatory update, as the home screen draws it. See src/domain/appUpdate/mandatoryUpdate.ts. */
+  type LauncherUpdateState = import("@domain/appUpdate/mandatoryUpdate").LauncherUpdateState
 
   type Unsubscribe = () => void
 
@@ -31,12 +24,13 @@ declare global {
       onPreventedAppClose: (callback: () => void) => Unsubscribe
     }
     appUpdater: {
-      onUpdateAvailable: (callback: UpdateAvailableCallback) => Unsubscribe
-      onUpdateDownloadProgress: (callback: UpdateProgressCallback) => Unsubscribe
-      onUpdateError: (callback: () => void) => Unsubscribe
-      onUpdateDownloaded: (callback: () => void) => Unsubscribe
-      downloadUpdate: () => void
-      updateAndRestart: () => void
+      /** The update's current state. Pulled on mount: a push can fire before anything is listening. */
+      getState: () => Promise<LauncherUpdateState>
+      onStateChanged: (callback: (state: LauncherUpdateState) => void) => Unsubscribe
+      /** A new attempt, only after every automatic download attempt failed. */
+      retryDownload: () => void
+      /** Restarts into the downloaded update now instead of at the end of the countdown. */
+      installNow: () => void
     }
     configManager: {
       getConfig: () => Promise<ConfigType>

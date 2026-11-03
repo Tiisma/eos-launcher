@@ -4,9 +4,10 @@ name: Release
 # with its SHA-256, to a DRAFT GitHub release for that tag. Nothing is visible to
 # anyone else until the release is reviewed and published by hand.
 #
-# There is no update feed: electron-builder's publish is off (electron-builder.yml)
-# and the in-app updater is disabled by the profile, so players update by
-# installing the new version.
+# The release is also the launcher's update feed (electron-builder.yml `publish`):
+# latest.yml and the installer's blockmap are attached with it. Installed
+# launchers only see the release once it is published, and never a prerelease
+# (a tag with a "-"), and then update themselves to it (mandatory update).
 on:
   push:
     tags:
@@ -37,8 +38,11 @@ jobs:
           cd dist
           shopt -s nullglob
           installers=(*-setup.exe)
+          blockmaps=(*-setup.exe.blockmap)
           if [ ${#installers[@]} -eq 0 ]; then echo "No installer was built" >&2; exit 1; fi
+          if [ ${#blockmaps[@]} -eq 0 ]; then echo "No installer blockmap was built" >&2; exit 1; fi
+          if [ ! -f latest.yml ]; then echo "No latest.yml (update metadata) was built" >&2; exit 1; fi
           sha256sum "${installers[@]}" > SHA256SUMS.txt
           prerelease=""
           case "$RELEASE_TAG" in *-*) prerelease="--prerelease" ;; esac
-          gh release create "$RELEASE_TAG" "${installers[@]}" SHA256SUMS.txt --draft $prerelease --title "The Exiles of Shadowland - Launcher $RELEASE_TAG" --notes "Windows installer and its SHA-256."
+          gh release create "$RELEASE_TAG" "${installers[@]}" "${blockmaps[@]}" latest.yml SHA256SUMS.txt --draft $prerelease --title "The Exiles of Shadowland - Launcher $RELEASE_TAG" --notes "Windows installer, its SHA-256, and the update metadata (latest.yml, blockmap) installed launchers read."

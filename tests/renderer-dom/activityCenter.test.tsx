@@ -373,33 +373,6 @@ describe("ActivityCenter", () => {
     expect(screen.getByText("A decision is required")).toBeTruthy()
   })
 
-  it("marks a 100 percent launcher update as finalizing until the downloaded event", () => {
-    const listeners: { progress?: (payload: { version: string; progress: number }) => void } = {}
-    installMockWindowApi({
-      appUpdater: {
-        onUpdateDownloadProgress: vi.fn((callback) => {
-          listeners.progress = callback
-          return (): void => {}
-        })
-      }
-    })
-
-    render(
-      <>
-        <ActivityCenter />
-        <NotificationsOverlay />
-      </>,
-      { wrapper }
-    )
-
-    act(() => listeners.progress?.({ version: "1.7.0-beta.6", progress: 100 }))
-    openCenter()
-
-    expect(screen.getByText(/Finalizing/)).toBeTruthy()
-    expect(screen.getByRole("progressbar").getAttribute("aria-valuenow")).toBe("100")
-    expect(screen.queryByTitle("Discard task")).toBeNull()
-  })
-
   it("reads a finished download as completed, not finalizing, when its last tick lands after it finished (#387)", async () => {
     let progressHandler: ProgressCallback | undefined
     let taskId = ""

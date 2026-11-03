@@ -10,12 +10,10 @@ export const IPC_CHANNELS = {
     PREVENTED_APP_CLOSE: "prevented-app-close"
   },
   APP_UPDATER: {
-    UPDATE_AVAILABLE: "update-available",
-    DOWNLOAD_UPDATE: "download-update",
-    UPDATE_DOWNLOAD_PROGRESS: "update-download-progress",
-    UPDATE_ERROR: "update-error",
-    UPDATE_DOWNLOADED: "update-downloaded",
-    UPDATE_AND_RESTART: "update-and-restart"
+    GET_STATE: "launcher-update-get-state",
+    STATE_CHANGED: "launcher-update-state-changed",
+    RETRY_DOWNLOAD: "launcher-update-retry-download",
+    INSTALL_NOW: "launcher-update-install-now"
   },
   CONFIG_MANAGER: {
     GET_CONFIG: "get-config",

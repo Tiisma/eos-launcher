@@ -221,8 +221,6 @@ const NotificationsProvider = ({ children }: { children: React.ReactNode }): JSX
     turnStartedAt.current.set(id, Date.now())
   }, [])
   const invokedActions = useRef<Set<string>>(new Set())
-  const offeredVersion = useRef("")
-  const downloadAccepted = useRef(false)
   const addNotificationRef = useRef<NotificationsContextType["addNotification"]>(() => {})
 
   const history = useMemo(() => records.filter((record) => !isToastOnly(record)), [records])
@@ -305,48 +303,8 @@ const NotificationsProvider = ({ children }: { children: React.ReactNode }): JSX
     })
   }, [stack, pausedToastIds, toastQueue])
 
-  useEffect((): (() => void) => {
-    const offerDownload = (body: string): void => {
-      addNotificationRef.current(body, "info", {
-        duration: null,
-        actions: [
-          {
-            id: "update-now",
-            label: t("notifications.actions.updateNow"),
-            onClick: (): void => {
-              downloadAccepted.current = true
-              window.api.appUpdater.downloadUpdate()
-            }
-          },
-          { id: "not-now", label: t("notifications.actions.notNow") }
-        ]
-      })
-    }
-
-    const removeUpdateAvailableListener = window.api.appUpdater.onUpdateAvailable(({ version }) => {
-      offeredVersion.current = version
-      window.setTimeout(() => offerDownload(t("notifications.body.updateAvailableConsent", { version })), 2_000)
-    })
-    const removeUpdateErrorListener = window.api.appUpdater.onUpdateError(() => {
-      if (!downloadAccepted.current) return
-      downloadAccepted.current = false
-      offerDownload(t("notifications.body.updateDownloadFailedRetry", { version: offeredVersion.current }))
-    })
-    const removeUpdateDownloadedListener = window.api.appUpdater.onUpdateDownloaded(() => {
-      window.setTimeout(() => {
-        addNotificationRef.current(t("notifications.body.updateDownloaded"), "success", {
-          duration: null,
-          actions: [{ id: "restart-and-update", label: t("components.activityCenter.restartAndUpdate"), onClick: (): void => window.api.appUpdater.updateAndRestart() }]
-        })
-      }, 2_000)
-    })
-
-    return () => {
-      removeUpdateAvailableListener()
-      removeUpdateErrorListener()
-      removeUpdateDownloadedListener()
-    }
-  }, [t])
+  // The launcher's own update is not offered here: it is mandatory and runs by itself, shown on the
+  // home screen (src/renderer/src/features/sombreterre/components/LauncherUpdateBanner.tsx).
 
   useEffect((): (() => void) => {
     // getConfig() found config.json unreadable (bad JSON, a hand edit gone wrong, or valid JSON

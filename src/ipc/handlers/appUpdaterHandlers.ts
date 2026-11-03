@@ -1,119 +1,62 @@
 import { ipcMain } from "electron"
 
 import { IPC_CHANNELS } from "../ipcChannels"
-import { isTrustedIpcSender } from "@src/ipc/ipcSecurity"
-import { loadAutoUpdater } from "@src/utils/autoUpdaterLoader"
-import { logMessage } from "@src/utils/logManager"
-import { getShouldPreventClose } from "@src/utils/shouldPreventClose"
+import type { LauncherUpdateState } from "@src/domain/appUpdate/mandatoryUpdate"
+import { assertTrustedIpcSender, isTrustedIpcSender } from "@src/ipc/ipcSecurity"
 
 /**
- * Two one-way flags the renderer cannot set: only the updater's own events
- * flip them, through the marks below, and every renderer-initiated channel
- * here refuses to act until the matching one is set.
+ * The renderer's window onto the launcher's mandatory update (src/main/mandatoryUpdater.ts).
  *
- * `updateAvailable` is what makes DOWNLOAD_UPDATE a consent channel rather
- * than a "start downloading whatever you like" button (#184): the renderer
- * can only ever confirm the one update the main process already found and
- * offered, and only after it has been offered.
- */
-let updateAvailable = false
-let updateDownloaded = false
-
-/**
- * Set once the accepted download is under way, so a second click on the same
- * notification (or anything else sending the channel twice) cannot start a
- * second download of the same artifact. Cleared again when the download fails,
- * which is what lets the user accept the retry the renderer offers them.
- */
-let updateDownloadStarted = false
-let offeredVersion = ""
-let sendToRenderer: (channel: string, payload?: unknown) => void = () => {}
-
-export function markUpdateAvailable(version: string = "", send: (channel: string, payload?: unknown) => void = () => {}): void {
-  updateAvailable = true
-  offeredVersion = version
-  sendToRenderer = send
-}
-
-/**
- * Puts the consent machinery back where it was just before the user said yes,
- * so the same offer can be accepted a second time in the same session.
+ * The state lives here rather than in the controller so the renderer can ask for it before the
+ * updater module has even loaded: main/index.ts publishes `checking` the moment it decides an update
+ * check will run, and the home screen holds Play until that first answer. With no updater at all the
+ * state stays `disabled`, which never blocks play.
  *
- * Only the re-entrancy flag is cleared. `updateAvailable` deliberately stays
- * set: it records that the main process found and offered this version, and a
- * download failing does not un-find it. Clearing it would refuse the very retry
- * this exists to allow, and there is no second check in a session to set it
- * again.
+ * The renderer cannot start, skip or delay an update. It can only ask for a new attempt after
+ * every automatic one failed, and for the restart the countdown would do a few seconds later anyway.
  */
-export function resetUpdateDownload(): void {
-  updateDownloadStarted = false
+
+export type SendToRenderer = (channel: string, payload?: unknown) => void
+
+export interface LauncherUpdateActions {
+  retryDownload: () => void
+  installNow: () => void
 }
 
-export function markUpdateDownloaded(): void {
-  updateDownloaded = true
+let state: LauncherUpdateState = { status: "disabled" }
+let send: SendToRenderer = () => {}
+let actions: LauncherUpdateActions | undefined
+
+/** Where state changes go. main/index.ts points it at the main window. */
+export function setLauncherUpdateSender(sender: SendToRenderer): void {
+  send = sender
 }
 
-ipcMain.on(IPC_CHANNELS.APP_UPDATER.DOWNLOAD_UPDATE, (event) => {
-  if (!isTrustedIpcSender(event) || !updateAvailable || updateDownloadStarted) return
-  updateDownloadStarted = true
-  sendToRenderer(IPC_CHANNELS.APP_UPDATER.UPDATE_DOWNLOAD_PROGRESS, { version: offeredVersion, progress: 0 })
+/** The controller the two renderer requests reach, once the updater has loaded. */
+export function setLauncherUpdateActions(controller: LauncherUpdateActions | undefined): void {
+  actions = controller
+}
 
-  logMessage("info", "[back] [appUpdater] [ipc/handlers/appUpdaterHandlers.ts] [DOWNLOAD_UPDATE] Update accepted by the user. Downloading.")
+export function publishLauncherUpdateState(next: LauncherUpdateState): void {
+  state = next
+  send(IPC_CHANNELS.APP_UPDATER.STATE_CHANGED, next)
+}
 
-  // electron-updater emits its own "error" event for a failed download, which
-  // is what tells the renderer the task died and clears the flag through
-  // resetUpdateDownload; this catch only exists so the rejection of the very
-  // same failure is not also an unhandled rejection, and clears the flag too
-  // for the case of a rejection with no matching event. It now also covers a
-  // failed load of the updater module itself, which fails this download the
-  // same way an unreachable feed would.
-  void loadAutoUpdater()
-    .then((autoUpdater) => autoUpdater.downloadUpdate())
-    .catch(() => {
-      updateDownloadStarted = false
-    })
+export function getLauncherUpdateState(): LauncherUpdateState {
+  return state
+}
+
+ipcMain.handle(IPC_CHANNELS.APP_UPDATER.GET_STATE, (event): LauncherUpdateState => {
+  assertTrustedIpcSender(event)
+  return state
 })
 
-// Both channels read their consent flag before they reach loadAutoUpdater, and that order is the
-// point rather than a detail: neither flag is ever set unless registerAutoUpdaterEvents saw an
-// offer, which only main/index.ts's canAutoUpdate-ok branch arranges. A build that cannot install
-// an update therefore never loads the module through here either, however many times the renderer
-// sends the channel.
-//
-// The arguments are (isSilent, isForceRunAfter), and both are true on purpose (#668). Not silent,
-// the Windows installer (oneClick: false in electron-builder.yml) opens its assisted wizard and
-// waits on two pages, install mode and then Finish, while the launcher is already gone.
-// electron-updater also drops isForceRunAfter when not silent, and that installer acts on
-// --force-run only when silent, so the restart would rest on the Finish page's "Run RiftLauncher"
-// box staying ticked. Silent, it updates the existing install in place and starts the launcher
-// again. The Linux updaters ignore isSilent and start the launcher again on isForceRunAfter, and
-// macOS never gets here.
-//
-// The close guard is checked first and the click is refused while it is held, with the same
-// message the window's close handler sends. quitAndInstall starts the installer before it asks the
-// app to quit, and the quit has side effects that cannot be taken back: before-quit kills the
-// workers and shuts the download, archive and query lanes for good, and only afterwards does the
-// window's close handler veto the quit. On Windows the silent installer then force-kills the
-// launcher and the game it started; on Linux the launcher survives with its lanes shut, and every
-// later Mod update deletes the old archive and fails to download the new one. `updateDownloaded`
-// is left set, and UPDATE_DOWNLOADED is sent again: the renderer marks the notification answered on
-// the click and hides its button for good, so without a new one the player could not restart in
-// this session. The renderer treats the event as idempotent and offers the restart afresh.
-ipcMain.on(IPC_CHANNELS.APP_UPDATER.UPDATE_AND_RESTART, (event) => {
-  if (!isTrustedIpcSender(event) || !updateDownloaded) return
-  void loadAutoUpdater()
-    .then((autoUpdater) => {
-      if (getShouldPreventClose()) {
-        if (!event.sender.isDestroyed()) {
-          event.sender.send(IPC_CHANNELS.UTILS.PREVENTED_APP_CLOSE)
-          event.sender.send(IPC_CHANNELS.APP_UPDATER.UPDATE_DOWNLOADED)
-        }
-        logMessage("info", "[back] [appUpdater] [ipc/handlers/appUpdaterHandlers.ts] [UPDATE_AND_RESTART] Restart refused: the app cannot close yet.")
-        return
-      }
-      autoUpdater.quitAndInstall(true, true)
-    })
-    .catch(() => {
-      updateDownloaded = false
-    })
+ipcMain.on(IPC_CHANNELS.APP_UPDATER.RETRY_DOWNLOAD, (event) => {
+  if (!isTrustedIpcSender(event)) return
+  actions?.retryDownload()
+})
+
+ipcMain.on(IPC_CHANNELS.APP_UPDATER.INSTALL_NOW, (event) => {
+  if (!isTrustedIpcSender(event)) return
+  actions?.installNow()
 })

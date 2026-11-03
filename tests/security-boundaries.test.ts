@@ -170,10 +170,10 @@ describe("startup network boundaries", () => {
 
   // An offline launch of a packaged build rejects the update check, and a
   // rejection nobody catches takes the main process down with it. The check
-  // itself lives in autoUpdaterEvents.ts, which tests/main/autoUpdaterEvents.test.ts
-  // exercises for real; this keeps index.ts from growing a second, uncaught one.
+  // itself lives in mandatoryUpdater.ts, which tests/main/mandatoryUpdater.test.ts
+  // exercises; this keeps index.ts from growing a second, uncaught one.
   it("leaves the startup update check to the module that catches its rejection", () => {
-    assert.equal(MAIN_SOURCE.includes("scheduleUpdateCheck("), true, "src/main/index.ts stopped arming the startup update check")
+    assert.equal(MAIN_SOURCE.includes("updater.start()"), true, "src/main/index.ts stopped starting the mandatory updater")
     assert.equal(MAIN_SOURCE.includes("autoUpdater.checkForUpdates("), false, "src/main/index.ts calls checkForUpdates itself again, where nothing catches its rejection")
   })
 

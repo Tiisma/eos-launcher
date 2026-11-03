@@ -27,12 +27,10 @@ const api: BridgeAPI = {
     onPreventedAppClose: (callback: () => void): Unsubscribe => subscribeWithoutPayload(IPC_CHANNELS.UTILS.PREVENTED_APP_CLOSE, callback)
   },
   appUpdater: {
-    onUpdateAvailable: (callback: UpdateAvailableCallback): Unsubscribe => subscribe(IPC_CHANNELS.APP_UPDATER.UPDATE_AVAILABLE, callback),
-    onUpdateDownloadProgress: (callback: UpdateProgressCallback): Unsubscribe => subscribe(IPC_CHANNELS.APP_UPDATER.UPDATE_DOWNLOAD_PROGRESS, callback),
-    onUpdateError: (callback: () => void): Unsubscribe => subscribeWithoutPayload(IPC_CHANNELS.APP_UPDATER.UPDATE_ERROR, callback),
-    onUpdateDownloaded: (callback: () => void): Unsubscribe => subscribeWithoutPayload(IPC_CHANNELS.APP_UPDATER.UPDATE_DOWNLOADED, callback),
-    downloadUpdate: (): void => ipcRenderer.send(IPC_CHANNELS.APP_UPDATER.DOWNLOAD_UPDATE),
-    updateAndRestart: () => ipcRenderer.send(IPC_CHANNELS.APP_UPDATER.UPDATE_AND_RESTART)
+    getState: (): Promise<LauncherUpdateState> => ipcRenderer.invoke(IPC_CHANNELS.APP_UPDATER.GET_STATE),
+    onStateChanged: (callback: (state: LauncherUpdateState) => void): Unsubscribe => subscribe(IPC_CHANNELS.APP_UPDATER.STATE_CHANGED, callback),
+    retryDownload: (): void => ipcRenderer.send(IPC_CHANNELS.APP_UPDATER.RETRY_DOWNLOAD),
+    installNow: (): void => ipcRenderer.send(IPC_CHANNELS.APP_UPDATER.INSTALL_NOW)
   },
   configManager: {
     getConfig: (): Promise<ConfigType> => ipcRenderer.invoke(IPC_CHANNELS.CONFIG_MANAGER.GET_CONFIG),

@@ -87,12 +87,10 @@ export function createMockWindowApi(overrides: WindowApiOverrides = {}): MockedB
       onPreventedAppClose: vi.fn(noopUnsubscribe)
     },
     appUpdater: {
-      onUpdateAvailable: vi.fn(noopUnsubscribe),
-      onUpdateDownloadProgress: vi.fn(noopUnsubscribe),
-      onUpdateError: vi.fn(noopUnsubscribe),
-      onUpdateDownloaded: vi.fn(noopUnsubscribe),
-      downloadUpdate: vi.fn(),
-      updateAndRestart: vi.fn()
+      getState: vi.fn(async () => ({ status: "disabled" }) as LauncherUpdateState),
+      onStateChanged: vi.fn(noopUnsubscribe),
+      retryDownload: vi.fn(),
+      installNow: vi.fn()
     },
     configManager: {
       getConfig: vi.fn(async () => createMockConfig()),

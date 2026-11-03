@@ -931,6 +931,18 @@
         "online": "{{online}} / {{max}} joueurs en ligne",
         "offline": "Serveur injoignable"
       },
+      "launcherUpdate": {
+        "checking": "Recherche d'une mise à jour du launcher…",
+        "updating": "Mise à jour du launcher en cours…",
+        "downloading": "Téléchargement d'EoS Launcher {{version}} : {{progress}} %",
+        "required": "Cette mise à jour est obligatoire pour jouer sur le serveur. Le bouton Jouer revient dès qu'elle est installée.",
+        "downloadFailed": "EoS Launcher {{version}} n'a pas pu être téléchargé. Vérifie ta connexion et réessaie, ou télécharge-le à la main.",
+        "retry": "Réessayer",
+        "manualDownload": "Le télécharger à la main",
+        "waitingForGame": "EoS Launcher {{version}} est prêt. Il s'installera dès que le jeu sera fermé.",
+        "installing": "EoS Launcher {{version}} est prêt. Redémarrage dans {{seconds}} s pour l'installer…",
+        "restartNow": "Redémarrer maintenant"
+      },
       "discord": {
         "link": "Lier mon Discord",
         "linking": "En attente de Discord…",

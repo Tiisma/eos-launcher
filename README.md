@@ -16,6 +16,8 @@ The launcher for **The Exiles of Shadowland**, a Vintage Story roleplay server. 
 3. Click **Link my Discord** and approve in your browser. You only do this once.
 4. Once your whitelist is validated on the server's Discord, click **Play**.
 
+The launcher updates itself: at startup (and every 30 minutes while it is open) it looks for a newer release on GitHub, downloads it and restarts into it. Play waits for that update, which is required, but never interrupts a running game. If GitHub cannot be reached, you can still play. Versions 0.1.1 and older do not update themselves: install the latest release by hand once.
+
 The first Play installs Vintage Story 1.22.7 with [Optimum](https://github.com/StratumServer/Optimum) and the server's mods, which takes a few minutes. After that, Play only downloads what changed.
 
 The launcher keeps everything in `%APPDATA%\EoSLauncher` (the game, its folder, backups, settings and logs), apart from any other launcher. See the [privacy policy](PRIVACY.md) for what it stores and contacts.
@@ -41,7 +43,7 @@ npm run build:win  # Windows installer in dist/
 
 Everything specific to the server (game version, server address, gate URL) is in [`src/domain/sombreterre/profile.ts`](src/domain/sombreterre/profile.ts). [`docs/sombreterre.md`](docs/sombreterre.md) describes how the fork works; the rest of `docs/` is RiftLauncher's own documentation, kept as a reference for the inherited code.
 
-Releases are built by GitHub Actions: pushing a `v*` tag drafts a release with the Windows installer and its SHA-256, published by hand after review.
+Releases are built by GitHub Actions: pushing a `v*` tag drafts a release with the Windows installer, its SHA-256 and the update metadata (`latest.yml`, blockmap), published by hand after review. Installed launchers update to a release once it is published; see [Launcher updates](docs/sombreterre.md#launcher-updates).
 
 ## Credits and licence
 

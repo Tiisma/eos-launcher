@@ -131,6 +131,17 @@ describe("release workflow", () => {
     assert.match(workflow, /--publish never/)
   })
 
+  it("attaches the update metadata installed launchers read", () => {
+    // electron-updater reads latest.yml from the release, and the blockmap for a differential download.
+    assert.match(workflow, /gh release create "\$RELEASE_TAG" "\$\{installers\[@\]\}" "\$\{blockmaps\[@\]\}" latest\.yml SHA256SUMS\.txt --draft/)
+    assert.match(workflow, /if \[ ! -f latest\.yml \]; then .* exit 1; fi/)
+  })
+
+  it("grants write access to the one job that creates the release, and nothing more", () => {
+    assert.equal(workflow.match(/permissions:/g)?.length, 1)
+    assert.match(workflow, /^ {2}windows-installer:\n {4}runs-on: windows-latest\n {4}permissions:\n {6}contents: write\n {4}env:/m)
+  })
+
   it("passes the tag through the environment instead of interpolating it into the shell", () => {
     // A `${{ }}` expression is substituted into the run script text before
     // bash parses it, so the only lines allowed to carry one are plain

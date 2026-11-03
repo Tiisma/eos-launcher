@@ -10,7 +10,8 @@ This repository is a local fork of [RiftLauncher](https://github.com/StratumServ
 - **One pack.** Before each launch, the Installation's `Mods` folder is synced with the pack manifest: ModDB Mods at pinned versions, plus private Mods served next to the manifest.
 - **Discord gate.** Until the launcher is linked to a Discord account, the home screen offers "Link my Discord" instead of Play. Play stays locked until the server says that account is whitelisted. The home screen also shows the players online.
 - **Straight to the server.** Right before the game starts, the launcher fetches a single-use launch ticket and writes it to `<Installation>/ModConfig/sombreterre-ticket.json`, where the `sombreterregate` client mod picks it up. The game starts with `-c <host:port>`, so it connects to the server without the game's own main menu.
-- **Isolated from RiftLauncher.** Named "The Exiles of Shadowland - Launcher" (`EoSLauncher.exe`), with its own app id and its own folder, `%APPDATA%\EoSLauncher`, which also holds the game folders (`Installations`, `Versions`, `Backups`) instead of placing them beside RiftLauncher's in `%APPDATA%`. The self-update and the upstream release feed are off, and so are the ModDB listing prompt, the release notes dialog and the global mod update checker.
+- **Mandatory self-update.** The launcher updates itself from this fork's GitHub releases (`Tiisma/eos-launcher`), without asking. See [Launcher updates](#launcher-updates).
+- **Isolated from RiftLauncher.** Named "The Exiles of Shadowland - Launcher" (`EoSLauncher.exe`), with its own app id and its own folder, `%APPDATA%\EoSLauncher`, which also holds the game folders (`Installations`, `Versions`, `Backups`) instead of placing them beside RiftLauncher's in `%APPDATA%`. The upstream release feed is gone, and so are the ModDB listing prompt, the release notes dialog and the global mod update checker.
 
 Everything specific to the server lives in [`src/domain/sombreterre/profile.ts`](../src/domain/sombreterre/profile.ts): name, game version, Optimum on/off, server address and the pack manifest URL. The Early Access build points at `57.129.112.230:42420`, with the gate behind `https://eos-gate.duckdns.org:8443/`.
 
@@ -55,6 +56,27 @@ npm run pack:hash -- pack/sombreterrecore-0.1.0.zip
 Then paste the printed entry into `pack/pack.json` and fill in `modid` and `version`. `pack/pack.example.json` shows both kinds of entry.
 
 The background is `src/renderer/src/assets/sombreterre/background.jpg` (the Sombreterre artwork, 1920×1080). It is the only one: the background picker is hidden and any stored choice is ignored, unless `backgroundPicker` is turned on in the profile.
+
+## Launcher updates
+
+The feed is set in `electron-builder.yml` (`publish`: GitHub, `Tiisma/eos-launcher`) and baked into the installed app's `resources/app-update.yml`. The logic is [`src/main/mandatoryUpdater.ts`](../src/main/mandatoryUpdater.ts), with the decisions in [`src/domain/appUpdate/mandatoryUpdate.ts`](../src/domain/appUpdate/mandatoryUpdate.ts). The update is mandatory: an outdated launcher cannot start the game.
+
+- **When.** At startup, then every 30 minutes while the launcher is open. Only GitHub's "latest release" counts: never a draft, never a prerelease (a tag with a `-`). The version must be strictly newer than the running one, by semver.
+- **Startup.** Play waits for the first check, at most 20 seconds, with "Checking for a launcher update…" under it.
+- **No network.** If the check fails (offline, GitHub down, no published release carrying `latest.yml`), the failure is logged and Play stays available.
+- **Update found.** It downloads straight away; the home screen shows the progress and Play is disabled with "Updating the launcher…".
+- **Download fails.** Two more attempts (after 5 s and 30 s). Then the home screen offers **Retry** and **Download it by hand** (the latest release page); Play stays disabled. The next periodic check also tries again.
+- **Game running.** The update is never installed while the game (or a backup, a download, anything that holds the launcher open) is running: it waits for it to end.
+- **Install.** A 10-second countdown (with **Restart now**), then the installer runs silently and starts the launcher again. A launcher closed during the wait installs the update as it quits.
+
+The installer is not code-signed. electron-updater only verifies a signature when `app-update.yml` has a `publisherName`, which electron-builder writes for signed builds only, so the unsigned update is accepted; its SHA-512 from `latest.yml` is still checked.
+
+### Releasing
+
+1. Bump `version` in `package.json`, commit, then push a `v<version>` tag. The release workflow builds the installer and attaches it, with its `.blockmap`, `latest.yml` and `SHA256SUMS.txt`, to a **draft** release.
+2. Review the draft, then publish it. Installed launchers see it from that moment (within 30 minutes for one already open).
+
+Launchers released before the self-update (0.1.1 and older) do not check for updates: their players must install the first version with it by hand, once.
 
 ## Known limits
 
