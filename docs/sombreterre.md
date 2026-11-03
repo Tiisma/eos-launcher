@@ -12,7 +12,7 @@ This repository is a local fork of [RiftLauncher](https://github.com/StratumServ
 - **Straight to the server.** Right before the game starts, the launcher fetches a single-use launch ticket and writes it to `<Installation>/ModConfig/sombreterre-ticket.json`, where the `sombreterregate` client mod picks it up. The game starts with `-c <host:port>`, so it connects to the server without the game's own main menu.
 - **Isolated from RiftLauncher.** Named "The Exiles of Shadowland - Launcher" (`EoSLauncher.exe`), with its own app id and its own folder, `%APPDATA%\EoSLauncher`, which also holds the game folders (`Installations`, `Versions`, `Backups`) instead of placing them beside RiftLauncher's in `%APPDATA%`. The self-update and the upstream release feed are off, and so are the ModDB listing prompt, the release notes dialog and the global mod update checker.
 
-Everything specific to the server lives in [`src/domain/sombreterre/profile.ts`](../src/domain/sombreterre/profile.ts): name, game version, Optimum on/off, server address and the pack manifest URL. The server address is a placeholder (`127.0.0.1:42420`).
+Everything specific to the server lives in [`src/domain/sombreterre/profile.ts`](../src/domain/sombreterre/profile.ts): name, game version, Optimum on/off, server address and the pack manifest URL. The Early Access build points at `57.129.112.230:42420`, with the gate behind `https://eos-gate.duckdns.org/`.
 
 ## The pack manifest
 
