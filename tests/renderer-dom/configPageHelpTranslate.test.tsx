@@ -15,7 +15,7 @@ import ConfigPage from "@renderer/features/config/pages/ConfigPage"
 import { installMockWindowApi, type MockedBridgeAPI } from "./helpers/windowApi"
 import { renderWithProviders } from "./helpers/render"
 
-const LABEL = "Help translate RiftLauncher"
+const LABEL = "Help translate EoS Launcher"
 const ENGAGE_URL = "https://hosted.weblate.org/engage/riftlauncher/"
 
 function renderConfigPage(): MockedBridgeAPI {

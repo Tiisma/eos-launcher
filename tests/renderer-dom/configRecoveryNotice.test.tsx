@@ -74,7 +74,7 @@ describe("failed VS Launcher import notice (#708)", () => {
     await waitFor(() => expect(seen).toHaveLength(1))
     expect(seen[0]?.type).toBe("warning")
     expect(seen[0]?.body).toBe(
-      "Your VS Launcher data couldn't be imported, so RiftLauncher started with an empty profile. It will try the import again the next time it starts, as long as you don't change anything in RiftLauncher before then. VS Launcher's own data was not changed."
+      "Your VS Launcher data couldn't be imported, so EoS Launcher started with an empty profile. It will try the import again the next time it starts, as long as you don't change anything in EoS Launcher before then. VS Launcher's own data was not changed."
     )
     expect(getConfigRecoveryNotice).toHaveBeenCalledTimes(1)
   })

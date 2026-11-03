@@ -1582,7 +1582,7 @@ describe("a failed row names its cause", () => {
     await act(async () => void fireEvent.click(screen.getByRole("button", { name: "Start task" })))
     openCenter()
 
-    expect(within(panel()).getAllByText("RiftLauncher is not allowed to write there. Check that folder's permissions, then try again.")).toHaveLength(2)
+    expect(within(panel()).getAllByText("EoS Launcher is not allowed to write there. Check that folder's permissions, then try again.")).toHaveLength(2)
     expect(panel().textContent).not.toContain("/home/someone")
     expect(panel().textContent).not.toContain("EACCES")
   })

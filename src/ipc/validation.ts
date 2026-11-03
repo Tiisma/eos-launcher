@@ -146,6 +146,8 @@ export const REDIRECT_URL_RULES: readonly UrlRule[] = [
 export const BROWSER_URL_RULES: readonly UrlRule[] = [
   { hostname: "discord.gg", pathPrefixes: ["/vQm6z2urZs"] },
   { hostname: "github.com", pathPrefixes: ["/StratumServer/RiftLauncher"] },
+  // This fork's own repository: its privacy policy, offered from the sign-in dialog.
+  { hostname: "github.com", pathPrefixes: ["/Tiisma/eos-launcher"] },
   // The launcher's translation project, offered from the language row on the Config page. Its own
   // engage page only, not Weblate at large.
   { hostname: "hosted.weblate.org", pathPrefixes: ["/engage/riftlauncher"] },

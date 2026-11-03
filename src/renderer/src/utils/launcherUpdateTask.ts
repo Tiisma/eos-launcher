@@ -19,5 +19,5 @@ export const LAUNCHER_UPDATE_TASK_ID = "launcher-update"
  */
 export function launcherUpdateName(version: string): string {
   const trimmed = version.trim()
-  return trimmed ? `RiftLauncher ${trimmed}` : "RiftLauncher"
+  return trimmed ? `EoS Launcher ${trimmed}` : "EoS Launcher"
 }

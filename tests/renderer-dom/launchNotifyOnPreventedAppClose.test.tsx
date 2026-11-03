@@ -34,7 +34,7 @@ describe("useNotifyOnPreventedAppClose", () => {
 
     firePreventedClose?.()
 
-    await screen.findByText("RiftLauncher can't close yet: either Vintage Story is running or a task is still going.")
+    await screen.findByText("EoS Launcher can't close yet: either Vintage Story is running or a task is still going.")
   })
 
   it("unsubscribes from the bridge when it unmounts", () => {

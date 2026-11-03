@@ -13,12 +13,12 @@ What changed and why.
 
 ## Checklist
 
-- [ ] Targets `dev`, not `main`.
+- [ ] Targets `eos-launcher`.
 - [ ] `npm run typecheck` passes.
 - [ ] `npm run lint:ci` passes.
 - [ ] `npm run format:check` passes.
-- [ ] `npm run test:coverage` passes, coverage at or above the floor in `vitest.config.ts`.
-- [ ] `npm run build:unpack` passes.
+- [ ] `npm test` passes.
+- [ ] Player-facing text is in both `en-US.json` and `fr-FR.json`.
 
 ## Testing
 

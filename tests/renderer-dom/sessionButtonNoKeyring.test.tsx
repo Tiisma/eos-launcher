@@ -71,7 +71,7 @@ describe("SessionButton on a login whose session is only held in memory", () => 
     await submitLogin()
 
     expect(await screen.findByText(/logged in as player/i)).toBeTruthy()
-    expect(await screen.findByText(/only until you close riftlauncher/i)).toBeTruthy()
+    expect(await screen.findByText(/only until you close eos launcher/i)).toBeTruthy()
     expect(await screen.findByRole("button", { name: "Read the keyring guide" })).toBeTruthy()
   }, 15000)
 

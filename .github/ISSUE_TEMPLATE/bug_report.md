@@ -25,9 +25,12 @@ If applicable, add screenshots to help explain your problem.
 
 **Desktop (please complete the following information):**
 
-- OS: [e.g. iOS]
-- Version [e.g. 22]
-- Launcher version: [e.g. 1.0.0]
+- OS: [e.g. Windows 11]
+- Game version: [e.g. 1.22.7 + Optimum]
+- Launcher version: [e.g. 0.1.0]
+
+**Logs**
+The relevant lines from `%APPDATA%\EoSLauncher\Logs` or the game's `client-main.log`, with any password, token or personal information removed.
 
 **Additional context**
 Add any other context about the problem here.

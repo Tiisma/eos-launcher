@@ -42,10 +42,10 @@ describe("SessionButton", () => {
     expect(email.classList.contains("invalid:border")).toBe(false)
     expect(within(dialog).getByRole("button", { name: "Cancel" })).toBeTruthy()
     expect(within(dialog).getByRole("button", { name: "Log in" }).getAttribute("type")).toBe("submit")
-    expect(within(dialog).getByText(/RiftLauncher sends your email/i)).toBeTruthy()
+    expect(within(dialog).getByText(/EoS Launcher sends your email/i)).toBeTruthy()
 
     await user.click(within(dialog).getByRole("button", { name: "Read the Privacy Policy" }))
-    expect(api.utils.openOnBrowser).toHaveBeenCalledWith("https://github.com/StratumServer/RiftLauncher/blob/main/PRIVACY.md")
+    expect(api.utils.openOnBrowser).toHaveBeenCalledWith("https://github.com/Tiisma/eos-launcher/blob/eos-launcher/PRIVACY.md")
   })
 
   it("does not submit the form when the reveal toggle is clicked", async () => {

@@ -9,7 +9,7 @@ name: Windows install conformance
 # away afterward.
 #
 # This runs the install logic from source, under tsx. The packaged app is a
-# different layer and has its own manual workflow, packaged-windows-conformance.yml.
+# different layer, which upstream RiftLauncher checks with its own packaged-build workflow.
 #
 # Not wired into ci.yml and not a required check. See tests/e2e/windows-install.ts
 # for what each of the three scenarios does. Scenarios 1 and 3 fail the job;

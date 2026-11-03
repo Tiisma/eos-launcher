@@ -28,7 +28,7 @@ const NOT_THIS_TIME = "Not this time"
 const NEVER_ASK = "Never ask again"
 
 const RUNNING = "1.7.0-beta.10"
-const BODY = /RiftLauncher is listed on ModDB/
+const BODY = /EoS Launcher is listed on ModDB/
 
 const UNANSWERED: ConfigType["moddbVisibility"] = { policy: "ask", answeredVersion: "", countedVersions: [] }
 

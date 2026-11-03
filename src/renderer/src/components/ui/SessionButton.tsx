@@ -35,7 +35,7 @@ import PopupDialogPanel from "@renderer/components/ui/PopupDialogPanel"
 // list membership first regardless, so even a collision would resolve to the switch, never these.
 const ADD_ACCOUNT_OPTION = "__add-account__"
 const REMOVE_ACCOUNT_OPTION = "__remove-account__"
-const PRIVACY_POLICY_URL = "https://github.com/StratumServer/RiftLauncher/blob/main/PRIVACY.md"
+const PRIVACY_POLICY_URL = "https://github.com/Tiisma/eos-launcher/blob/eos-launcher/PRIVACY.md"
 // The Linux install guide's keyring section. Fixed here, never built from anything that crossed
 // the IPC boundary, and already covered by BROWSER_URL_RULES (src/ipc/validation.ts).
 const KEYRING_GUIDE_URL = "https://riftlauncher.stratumvs.dev/docs/get-started/installation/linux#session-storage-and-keyrings"

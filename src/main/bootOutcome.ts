@@ -1,7 +1,7 @@
 import type { BootFailure } from "@src/main/bootUserData"
 import type { UserDataSetup } from "@src/main/userDataMigration"
 
-const ERROR_TITLE = "RiftLauncher could not start"
+const ERROR_TITLE = "The Exiles of Shadowland - Launcher could not start"
 
 export function logUserDataSetupUnlessBootFailed(failure: BootFailure | null, message: string, writeLog: (message: string) => void): void {
   if (failure === null) writeLog(message)

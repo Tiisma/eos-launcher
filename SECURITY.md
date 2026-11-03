@@ -1,17 +1,13 @@
 # Security Policy
 
-## Supported Versions
+## Supported versions
 
-RiftLauncher will be updated frequently to add new features, fix issues and
-add compatibility with the latest Vintage Story versions.
+Only the latest release of The Exiles of Shadowland - Launcher is supported. Check that a problem still happens with it before reporting.
 
-To make everything work as expected users will need the latest version so
-only that one will be 100% supported and will work as expected.
+## Reporting a vulnerability
 
-Issues with old versions will be discarded if they are solved on the latest
-version.
+Do not publish exploit details in a public issue. Report it privately through this repository's [security advisories](https://github.com/Tiisma/eos-launcher/security/advisories/new), or ask the server staff for a private channel on The Exiles of Shadowland Discord.
 
-## Reporting a Vulnerability
+This includes anything that could let someone else use a player's Vintage Story session, Discord link or launcher token, reach the server's private mods without being whitelisted, or join the server without going through the launcher.
 
-If you find a vulnerability, do not publish exploit details in a public issue.
-Use the repository's [private security advisory channel](https://github.com/StratumServer/RiftLauncher/security/advisories/new) when available. If it is unavailable, contact the team privately through the [Stratum Discord server](https://discord.gg/vQm6z2urZs) and ask for a private channel.
+A vulnerability in the inherited RiftLauncher code is likely to affect RiftLauncher too: once it is fixed here, it is worth reporting to [RiftLauncher](https://github.com/StratumServer/RiftLauncher/security) as well.

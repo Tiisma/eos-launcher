@@ -1,61 +1,18 @@
-# Contributing Guide
+# Contributing
 
-Thank you for your interest in contributing to this project! This document will help you understand how you can collaborate.
+Thanks for helping with The Exiles of Shadowland - Launcher.
 
-## Getting Started
+## Reporting a problem
 
-1. **Clone the repository**: Fork this repository and clone it to your local machine.
-2. **Install dependencies**: Install node.js@22 and run `npm install` to install all dependencies.
-3. **Make changes**: Make any change you want.
-4. **Make a pull request**: Explain on the description what you've added and what it does.
+Open an issue with what you did, what you expected and what happened instead. Attach the relevant part of the logs from `%APPDATA%\EoSLauncher\Logs` (launcher) or `%APPDATA%\EoSLauncher\Installations\The Exiles of Shadowland\Logs\client-main.log` (game), after checking that they hold no password, token or personal information.
 
-## Reporting Issues
+Problems with the server itself (whitelist, roles, mods that misbehave in game) belong on The Exiles of Shadowland Discord, not here.
 
-If you find a bug or have a suggestion, open an issue. Make sure to include:
+## Changing the code
 
-- A clear and concise description of the problem.
-- Steps to reproduce the issue (if applicable).
-- Relevant screenshots or logs.
-  You can find this ones on `AppData/Roaming/VSLauncher/logs` or `.config/VSLauncher/logs` (inherited from VS Launcher, renaming tracked separately).
+1. Install Node.js 22 and run `npm ci`.
+2. Make the change on a branch. Code, comments, commit messages and docs are written in English; player-facing text goes in `src/renderer/src/locales/en-US.json` and `fr-FR.json`.
+3. Check it: `npm run typecheck`, `npm run lint`, `npm test`.
+4. Open a pull request against `eos-launcher` explaining what changed and why.
 
-## Proposing New Features
-
-If you have ideas to improve the project, open an issue to discuss them before starting work. Include:
-
-- A detailed description of the feature.
-- Examples of usage or additional context.
-
-## Code Style
-
-- Follow the coding standard defined in the project.
-- Ensure your code is clean and well-commented.
-
-## Headless Checks
-
-For a change that could show up on screen, or that a PR description claims changes the app's
-behaviour, [docs/contribute/headless-checks.md](docs/contribute/headless-checks.md) covers driving
-a packaged build with no window: seed a throwaway profile, launch it, read or click through the
-UI over the Chrome DevTools Protocol, and screenshot what it actually shows.
-
-## Documentation
-
-`docs/` is the single source of truth for RiftLauncher's documentation. Map every claim you write there to the app's current behaviour, the repository, the [releases page](https://github.com/StratumServer/RiftLauncher/releases) or the [issue tracker](https://github.com/StratumServer/RiftLauncher/issues), not to how VS Launcher used to behave. If a step or a claim can't be verified against one of those, treat it as a hypothesis and say so rather than writing it as fact. The same goes for screenshots and embedded videos: note plainly when one predates a UI or branding change instead of leaving the reader to guess why what they see doesn't match.
-
-## Submitting a Pull Request
-
-1. **Update your branch**: Make sure your branch is up to date with the main branch.
-2. **Write a good commit message**: Clearly describe what you have done.
-3. **Open a Pull Request**: Include a summary of the changes made and why they are necessary.
-4. **Respond to comments**: Participate in the discussion if maintainers have questions or suggestions.
-
-## Code of Conduct
-
-This project follows a [Code of Conduct](./CODE_OF_CONDUCT.md). By contributing, you agree to adhere to its rules to maintain a respectful and collaborative environment.
-
-## Contact
-
-If you have any questions, join the [Stratum Discord server](https://discord.gg/vQm6z2urZs) or open an issue.
-
----
-
-We look forward to your contributions!
+[`docs/sombreterre.md`](docs/sombreterre.md) explains how the fork works. [`docs/architecture.md`](docs/architecture.md) and the rest of `docs/` describe the code inherited from RiftLauncher, and still apply to it.

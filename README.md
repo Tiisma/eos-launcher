@@ -1,69 +1,50 @@
-> [!IMPORTANT]
-> **Sombreterre fork.** This copy is customised for the Sombreterre roleplay server: one game version, one server, one pack. See [docs/sombreterre.md](docs/sombreterre.md). The rest of this README describes upstream RiftLauncher.
+<p align="center">
+  <img src="resources/icon.png" alt="" width="128" height="128" />
+</p>
 
-> [!WARNING]
-> **RiftLauncher is in active development.** A beta prerelease is available on the [releases page](https://github.com/StratumServer/RiftLauncher/releases) for early testing: expect rough edges and breaking changes while the team keeps rebuilding the launcher. Back up your worlds before pointing it at an existing installation, and report anything odd on the issues page or the Discord.
+# The Exiles of Shadowland - Launcher
+
+The launcher for **The Exiles of Shadowland**, a Vintage Story roleplay server. One button gets a player onto the server: it installs the right game, keeps the server's mods in sync and connects straight to the server.
 
 > [!NOTE]
-> This fork is maintained by [Zaldaryon](https://github.com/Zaldaryon) and the [Stratum](https://github.com/StratumServer) team.
-> For general support, join the [Stratum Discord server](https://discord.gg/vQm6z2urZs).
+> The server is in **Early Access**. The launcher is unofficial and not affiliated with Anego Studios, the developers of [Vintage Story](https://www.vintagestory.at).
 
-# Welcome to RiftLauncher
+## For players
 
-[![CI](https://github.com/StratumServer/RiftLauncher/actions/workflows/ci.yml/badge.svg?branch=dev)](https://github.com/StratumServer/RiftLauncher/actions/workflows/ci.yml)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=StratumServer_RiftLauncher&metric=coverage)](https://sonarcloud.io/summary/overall?id=StratumServer_RiftLauncher)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=StratumServer_RiftLauncher&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=StratumServer_RiftLauncher)
-[![Downloads](https://img.shields.io/github/downloads/StratumServer/RiftLauncher/total?logo=github&label=downloads)](https://github.com/StratumServer/RiftLauncher/releases)
-[![Latest release](https://img.shields.io/github/v/release/StratumServer/RiftLauncher?include_prereleases&logo=github&label=latest)](https://github.com/StratumServer/RiftLauncher/releases/latest)
-[![Support on OpenCollective](https://img.shields.io/badge/Support-OpenCollective-7FADF2?logo=opencollective&logoColor=white)](https://opencollective.com/stratum)
+1. Download `eos-launcher-<version>-setup.exe` from the [latest release](https://github.com/Tiisma/eos-launcher/releases/latest) and run it. The installer is not code-signed yet, so Windows SmartScreen may show "Unknown publisher": choose **More info**, then **Run anyway**. The release lists the installer's SHA-256 in `SHA256SUMS.txt`.
+2. Sign in to your Vintage Story account with the button in the top-left corner.
+3. Click **Link my Discord** and approve in your browser. You only do this once.
+4. Once your whitelist is validated on the server's Discord, click **Play**.
 
-## What's RiftLauncher?
+The first Play installs Vintage Story 1.22.7 with [Optimum](https://github.com/StratumServer/Optimum) and the server's mods, which takes a few minutes. After that, Play only downloads what changed.
 
-RiftLauncher is an independent launcher for Vintage Story, built by the [Stratum](https://github.com/StratumServer) team. The website at [riftlauncher.stratumvs.dev](https://riftlauncher.stratumvs.dev/) has the short version and the downloads.
-With it you can install multiple versions of Vintage Story, create separate installations with their own configs, mods and worlds, and manage backups, all in a few clicks. It currently works on Windows and Linux; macOS support is planned but not built yet. When enabled, Electron 44 requires macOS 13 (Ventura) or later.
+The launcher keeps everything in `%APPDATA%\EoSLauncher` (the game, its folder, backups, settings and logs), apart from any other launcher. See the [privacy policy](PRIVACY.md) for what it stores and contacts.
 
-RiftLauncher is a fork of [VS Launcher](https://github.com/XurxoMF/vs-launcher) by [XurxoMF](https://github.com/XurxoMF), archived by its original author. Everything the launcher does today started there. Thank you to XurxoMF and everyone who translated, tested and contributed to the original project; their work carries forward into this one, and the [contributors page](docs/important-info/contributors.md) credits them by name.
+## What it does
 
-Since the fork, the project has gone through a large rebuild under the hood: a testable domain layer separate from the UI, continuous integration building on Windows and Linux, well over a thousand automated tests, and typed error reporting on every user-facing flow.
+- **Pinned game version**: Vintage Story 1.22.7, with the latest Optimum release that supports it.
+- **Server mod pack**: the server publishes its pack; the launcher downloads public mods from the ModDB and the server's own mods from the server, checks every archive's SHA-256, and only removes files it installed itself.
+- **Discord whitelist**: the launcher is linked to a Discord account once. The server only lets in players whose Discord account holds the whitelist role, and a single-use launch ticket proves each connection came from the launcher, so no command is ever typed in game.
+- **Straight to the server**: the game starts connected to the server, without its main menu.
+- **Players online** on the home screen.
 
-RiftLauncher is unofficial and not affiliated with Anego Studios, the developers of [Vintage Story](https://www.vintagestory.at).
+The server side of this (the Discord bot, the whitelist gate and the pack) lives in a separate repository, `Tiisma/eos-gate`.
 
-## What does RiftLauncher provide?
+## For developers
 
-- Install multiple Vintage Story versions with one click.
-- Create multiple Installations (data paths) with one click to have different mods, worlds and so on on each one.
-- Make manual and automatic backups of your installations to not loose any of your worlds or configs if something breaks.
-- There are a lot of languages you can choose to use on RiftLauncher.
-- RiftLauncher checks for its own updates when you open it and asks before downloading one.
+```bash
+npm ci
+npm run dev        # run from source
+npm test           # unit and component tests
+npm run build:win  # Windows installer in dist/
+```
 
-## How can I download RiftLauncher?
+Everything specific to the server (game version, server address, gate URL) is in [`src/domain/sombreterre/profile.ts`](src/domain/sombreterre/profile.ts). [`docs/sombreterre.md`](docs/sombreterre.md) describes how the fork works; the rest of `docs/` is RiftLauncher's own documentation, kept as a reference for the inherited code.
 
-You can find a guide explaining how to download it here: [How to install RiftLauncher](docs/get-started/installation/README.md).
+Releases are built by GitHub Actions: pushing a `v*` tag drafts a release with the Windows installer and its SHA-256, published by hand after review.
 
-## How does RiftLauncher handle privacy?
+## Credits and licence
 
-Read the [RiftLauncher Privacy Policy](PRIVACY.md) for the data the launcher stores locally and the external services it contacts.
+This launcher is a fork of [RiftLauncher](https://github.com/StratumServer/RiftLauncher) by [Zaldaryon](https://github.com/Zaldaryon) and the [Stratum](https://github.com/StratumServer) team, itself a fork of [VS Launcher](https://github.com/XurxoMF/vs-launcher) by [XurxoMF](https://github.com/XurxoMF). Nearly everything the launcher can do started with them; see [their contributors](docs/important-info/contributors.md). Please report problems with this fork here, not to them.
 
-## How do I use RiftLauncher?
-
-We've made a little tutorial on how to use RiftLauncher here: [How to use RiftLauncher](docs/get-started/usage/README.md).
-
-## Can I translate RiftLauncher to another language?
-
-Yes, thanks to i18n you can translate it to any language. Here is the guide: [How to translate RiftLauncher](docs/get-started/translation/README.md). Translation happens on [Weblate](https://hosted.weblate.org/projects/riftlauncher/), where anyone can help. The guide stays for people who prefer a pull request.
-
-## Where can I ask for help?
-
-You can ask anything you need on our [Discord server](https://discord.gg/vQm6z2urZs).
-
-## Where can I report bugs?
-
-You can report any bug on the [RiftLauncher GitHub Issues](https://github.com/StratumServer/RiftLauncher/issues) or our [Discord server](https://discord.gg/vQm6z2urZs).
-
-## Can I make a suggestion?
-
-Yes, you can do so on our [Discord server](https://discord.gg/vQm6z2urZs).
-
-## Can I support the project?
-
-Financial support goes through the Stratum team's [OpenCollective](https://opencollective.com/stratum), which gives the project a transparent way to handle donations and project costs. Testing, translating and reporting bugs help just as much.
+Released under the [MIT licence](LICENSE).

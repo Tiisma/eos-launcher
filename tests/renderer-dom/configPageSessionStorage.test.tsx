@@ -18,7 +18,7 @@ import { createMockConfig, installMockWindowApi, type MockedBridgeAPI } from "./
 import { renderWithProviders } from "./helpers/render"
 
 const TOGGLE_TITLE =
-  "Keeps you logged in on a computer with no system keyring. The session is then written to disk sealed with a key built into the launcher, so any program running as you can read it. Sessions a system keyring saved earlier stay on disk but cannot be read while this is on. Leave this off unless that is fine on this computer. Takes effect the next time RiftLauncher starts."
+  "Keeps you logged in on a computer with no system keyring. The session is then written to disk sealed with a key built into the launcher, so any program running as you can read it. Sessions a system keyring saved earlier stay on disk but cannot be read while this is on. Leave this off unless that is fine on this computer. Takes effect the next time EoS Launcher starts."
 
 function renderConfigPage(allowBasicSessionStore = false): MockedBridgeAPI {
   const api = installMockWindowApi({
@@ -64,7 +64,7 @@ describe("ConfigPage session storage toggle", () => {
 
     await waitFor(() => expect(lastSavedConfig(api).allowBasicSessionStore).toBe(true))
     // Inside the banner region, not the description, which carries the same sentence.
-    expect(await within(screen.getByRole("status")).findByText(/takes effect the next time riftlauncher starts/i)).toBeTruthy()
+    expect(await within(screen.getByRole("status")).findByText(/takes effect the next time eos launcher starts/i)).toBeTruthy()
   }, 15000)
 
   it("stores the opt-out again for someone who changes their mind", async () => {

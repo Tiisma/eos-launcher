@@ -162,7 +162,7 @@ describe("the update offer (#184)", () => {
 
     offerUpdate(listeners)
 
-    expect(screen.getByText("RiftLauncher 1.7.0-beta.3 is available. Do you want to download it now?")).toBeTruthy()
+    expect(screen.getByText("EoS Launcher 1.7.0-beta.3 is available. Do you want to download it now?")).toBeTruthy()
     expect(screen.getByRole("button", { name: "Update now" })).toBeTruthy()
     expect(screen.getByRole("button", { name: "Not now" })).toBeTruthy()
     // Merely being offered one must never start a download.
@@ -179,7 +179,7 @@ describe("the update offer (#184)", () => {
     expect(api.appUpdater.downloadUpdate).toHaveBeenCalledTimes(1)
     // The offer has been answered, so it goes, and says where to watch instead.
     expect(offerIsLive()).toBe(false)
-    expect(screen.queryByText("Starting download: RiftLauncher 1.7.0-beta.3!")).toBeNull()
+    expect(screen.queryByText("Starting download: EoS Launcher 1.7.0-beta.3!")).toBeNull()
   })
 
   it("can only be answered once, however fast the accept is clicked", () => {
@@ -198,7 +198,7 @@ describe("the update offer (#184)", () => {
     fireEvent.click(accept)
 
     expect(api.appUpdater.downloadUpdate).toHaveBeenCalledTimes(1)
-    expect(screen.queryByText("Starting download: RiftLauncher 1.7.0-beta.3!")).toBeNull()
+    expect(screen.queryByText("Starting download: EoS Launcher 1.7.0-beta.3!")).toBeNull()
     expect(offerIsLive()).toBe(false)
   })
 
@@ -248,7 +248,7 @@ describe("the download's progress bar (#185)", () => {
     act(() => listeners.progress?.({ version: "1.7.0-beta.3", progress: 0 }))
 
     openActivityCenter()
-    expect(screen.getByText("RiftLauncher 1.7.0-beta.3")).toBeTruthy()
+    expect(screen.getByText("EoS Launcher 1.7.0-beta.3")).toBeTruthy()
     expect(progressBar()?.getAttribute("aria-valuenow")).toBe("0")
 
     fireDownloaded(listeners)
@@ -269,7 +269,7 @@ describe("the download's progress bar (#185)", () => {
 
     act(() => listeners.progress?.({ version: "1.7.0-beta.3", progress: 12 }))
 
-    expect(screen.getByText("RiftLauncher 1.7.0-beta.3")).toBeTruthy()
+    expect(screen.getByText("EoS Launcher 1.7.0-beta.3")).toBeTruthy()
     expect(screen.getByText(/Downloading/)).toBeTruthy()
     expect(progressBar()?.getAttribute("aria-valuenow")).toBe("12")
 
@@ -281,7 +281,7 @@ describe("the download's progress bar (#185)", () => {
     fireDownloaded(listeners)
 
     expect(progressBar()).toBeNull()
-    expect(screen.getByText("RiftLauncher 1.7.0-beta.3")).toBeTruthy()
+    expect(screen.getByText("EoS Launcher 1.7.0-beta.3")).toBeTruthy()
   })
 
   it("does not complete the task on a tick of 100, only the downloaded event does (#200)", () => {
@@ -351,7 +351,7 @@ describe("the download's progress bar (#185)", () => {
     act(() => listeners.progress?.({ version: "1.7.0-beta.3", progress: 47 }))
     fireError(listeners)
 
-    const retry = "The download of RiftLauncher 1.7.0-beta.3 failed. Do you want to try again?"
+    const retry = "The download of EoS Launcher 1.7.0-beta.3 failed. Do you want to try again?"
     expect(screen.getByText(retry)).toBeTruthy()
 
     fireEvent.click(acceptButtonOf(retry))
@@ -385,7 +385,7 @@ describe("the download's progress bar (#185)", () => {
       act(() => listeners.progress?.({ version: "1.7.0-beta.3", progress }))
     }
 
-    expect(screen.getAllByText("RiftLauncher 1.7.0-beta.3")).toHaveLength(1)
+    expect(screen.getAllByText("EoS Launcher 1.7.0-beta.3")).toHaveLength(1)
     expect(progressBar()?.getAttribute("aria-valuenow")).toBe("82")
   })
 
@@ -396,7 +396,7 @@ describe("the download's progress bar (#185)", () => {
     openActivityCenter()
     act(() => listeners.progress?.({ version: "", progress: 25 }))
 
-    expect(screen.getByText("RiftLauncher")).toBeTruthy()
+    expect(screen.getByText("EoS Launcher")).toBeTruthy()
     expect(progressBar()?.getAttribute("aria-valuenow")).toBe("25")
   })
 
@@ -482,7 +482,7 @@ describe("the restart after a refusal (#702)", () => {
  * offers the restart says so, with the button that does it.
  */
 describe("the restart notice says the launcher comes back by itself (#673)", () => {
-  it("tells the player RiftLauncher closes and opens again by itself, and that it can take up to half a minute", () => {
+  it("tells the player EoS Launcher closes and opens again by itself, and that it can take up to half a minute", () => {
     const { listeners } = installUpdaterApi()
     renderUpdateSurfaces()
 
@@ -491,7 +491,7 @@ describe("the restart notice says the launcher comes back by itself (#673)", () 
       vi.advanceTimersByTime(2_000)
     })
 
-    const notice = screen.getByText("The update is ready to install. RiftLauncher closes and opens again by itself, which can take up to half a minute.")
+    const notice = screen.getByText("The update is ready to install. EoS Launcher closes and opens again by itself, which can take up to half a minute.")
     expect(within(notice.parentElement as HTMLElement).getByRole("button", { name: "Restart and update" })).toBeTruthy()
   })
 
@@ -508,7 +508,7 @@ describe("the restart notice says the launcher comes back by itself (#673)", () 
       vi.advanceTimersByTime(2_000)
     })
 
-    const notice = screen.getByText("La mise à jour est prête à être installée. RiftLauncher se ferme puis se rouvre tout seul, ce qui peut prendre jusqu'à une demi-minute.")
+    const notice = screen.getByText("La mise à jour est prête à être installée. EoS Launcher se ferme puis se rouvre tout seul, ce qui peut prendre jusqu'à une demi-minute.")
     expect(within(notice.parentElement as HTMLElement).getByRole("button", { name: "Redémarrer et mettre à jour" })).toBeTruthy()
   })
 })

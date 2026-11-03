@@ -67,8 +67,8 @@ describe("main process boot outcome", () => {
     assert.equal(handled, true)
     assert.deepEqual(calls, ["stderr", "dialog", "exit"])
     assert.deepEqual(reported, [
-      "RiftLauncher could not start: Could not create C:\\Users\\Player\\RiftLauncher.singleton (EACCES)\n",
-      "RiftLauncher could not start",
+      "The Exiles of Shadowland - Launcher could not start: Could not create C:\\Users\\Player\\RiftLauncher.singleton (EACCES)\n",
+      "The Exiles of Shadowland - Launcher could not start",
       "Could not create C:\\Users\\Player\\RiftLauncher.singleton (EACCES)",
       "1"
     ])

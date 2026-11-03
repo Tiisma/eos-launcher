@@ -156,7 +156,7 @@ describe("a home page that throws", () => {
     home.throws = false
     await user.click(screen.getByRole("button", { name: "Go to the main menu" }))
 
-    expect(await screen.findByRole("heading", { name: "Welcome to RiftLauncher" })).toBeTruthy()
+    expect(await screen.findByRole("heading", { name: "Welcome to EoS Launcher" })).toBeTruthy()
     expect(screen.queryByRole("alert", { name: "This page couldn't be displayed" })).toBeNull()
   })
 
@@ -168,7 +168,7 @@ describe("a home page that throws", () => {
 
     await user.click(screen.getByRole("button", { name: "Open Info & Help" }))
 
-    expect(await screen.findByRole("heading", { name: "RiftLauncher Info & Help" })).toBeTruthy()
+    expect(await screen.findByRole("heading", { name: "EoS Launcher Info & Help" })).toBeTruthy()
     expect(screen.queryByRole("alert", { name: "This page couldn't be displayed" })).toBeNull()
   })
 

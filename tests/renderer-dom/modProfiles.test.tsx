@@ -849,7 +849,7 @@ describe("Mod profiles", { timeout: 20000 }, () => {
   })
 
   it.each([
-    ["newer-format", "This Installation's profiles were saved by a newer version of RiftLauncher. This version leaves them untouched: update the launcher to use them."],
+    ["newer-format", "This Installation's profiles were saved by a newer version of EoS Launcher. This version leaves them untouched: update the launcher to use them."],
     ["unreadable", "This Installation's profiles file can't be read, so profiles are off until it is fixed or removed. The launcher will not overwrite it."],
     ["refused", "Profiles are not available for this Installation."]
   ] as const)("a profiles file the host reads as %s disables every control and is never saved", async (reason, notice) => {
@@ -870,7 +870,7 @@ describe("Mod profiles", { timeout: 20000 }, () => {
     await user.type(within(dialog).getByLabelText(NEW_NAME), "Server{Enter}")
 
     expect(await screen.findByText("Couldn't save the profiles. Nothing was changed.")).toBeTruthy()
-    expect(await within(dialog).findByText(/saved by a newer version of RiftLauncher/)).toBeTruthy()
+    expect(await within(dialog).findByText(/saved by a newer version of EoS Launcher/)).toBeTruthy()
     expect((within(dialog).getByRole("button", { name: CREATE }) as HTMLButtonElement).disabled).toBe(true)
     expect(saveModProfiles).toHaveBeenCalledTimes(1)
   })

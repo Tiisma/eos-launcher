@@ -59,7 +59,7 @@ representative at an online or offline event.
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported privately to the team on the [Stratum Discord server](https://discord.gg/vQm6z2urZs).
+reported privately to the server staff on The Exiles of Shadowland Discord.
 All complaints will be reviewed and investigated promptly and fairly.
 
 All community leaders are obligated to respect the privacy and security of the

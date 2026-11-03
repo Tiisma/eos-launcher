@@ -1,59 +1,64 @@
-# RiftLauncher Privacy Policy
+# The Exiles of Shadowland - Launcher: Privacy Policy
 
-Last updated: 2026-09-01
+Last updated: 2026-11-03
 
-This policy explains what information RiftLauncher handles when you use the desktop application. RiftLauncher is an independent community project maintained by Zaldaryon and contributors. The source code is available at [github.com/StratumServer/RiftLauncher](https://github.com/StratumServer/RiftLauncher).
+This policy explains what information **The Exiles of Shadowland - Launcher** (the "launcher") handles, and what the server's gate, the part of The Exiles of Shadowland game server the launcher talks to, keeps about you. The launcher is a fork of [RiftLauncher](https://github.com/StratumServer/RiftLauncher), maintained for The Exiles of Shadowland roleplay server. Its source code is at [github.com/Tiisma/eos-launcher](https://github.com/Tiisma/eos-launcher), and the gate's at [github.com/Tiisma/eos-gate](https://github.com/Tiisma/eos-gate).
 
-This policy covers the RiftLauncher application. It does not cover Vintage Story, the Vintage Story websites, ModDB, GitHub, YouTube, Discord, or any other service that RiftLauncher opens or contacts. Those services have their own policies and control the data they receive.
+It does not cover Vintage Story, the Vintage Story websites, the ModDB, GitHub, Discord, or any other service the launcher opens or contacts. Those services have their own policies and control the data they receive.
 
 ## Information stored on your device
 
-RiftLauncher stores its configuration in the application user-data directory on your device. This can include installation and version paths, installation names, backup paths and dates, mod favorites and update preferences, window settings, selected backgrounds, custom icons, the profiles of the accounts you have signed into and which one is currently shown in the launcher, and whether you accepted, declined, or said that you had already completed the one-time ModDB visibility request.
+The launcher keeps its configuration, logs and caches in `%APPDATA%\EoSLauncher` on Windows (`~/.config/EoSLauncher` on Linux). The game itself, its installation and its backups live in the `Versions`, `Installations` and `Backups` folders inside it.
 
-If you sign in to a Vintage Story account, RiftLauncher sends the email address, password, and optional two-factor code that you enter to the official Vintage Story account endpoint at [auth3.vintagestory.at/v2/gamelogin](https://auth3.vintagestory.at/v2/gamelogin) over HTTPS. The password and two-factor code remain in memory while you complete the login request, then the launcher clears those input fields and does not store or write them to the launcher logs. A successful response provides the player name, player UID, entitlement information, game-server entitlement status, and session credentials. RiftLauncher stores each signed-in account's non-secret profile in its local configuration and stores its session key, session signature, and multiplayer token in a single encrypted local account file, keyed by account, using the operating system storage provided by Electron.
+**Vintage Story account.** If you sign in, the launcher sends the email address, password and optional two-factor code you enter to the official Vintage Story account service at `auth3.vintagestory.at` over HTTPS. The password and two-factor code are only held in memory for that request and are never written to disk or to the logs. The response gives your player name, player UID, entitlements and session credentials. The non-secret profile is stored in the configuration; the session key, session signature and multiplayer token are stored encrypted, using the operating system's secure storage through Electron. When you play, the launcher writes the profile and session fields the game needs into the installation's `clientsettings.json`, as the official launcher would; from there they belong to the game installation.
 
-When RiftLauncher starts a game, it writes the account profile and session fields needed by the official client into the selected installation's local `clientsettings.json`. This lets Vintage Story authenticate the player. Those values then belong to the local game installation and can be read by the official game or other software with access to that file. Removing an account from the launcher deletes that account's entry from the encrypted session file and drops it from the account list. If other accounts are still signed in, their credentials remain in the encrypted file, which the launcher rewrites around what is left; the file itself and its recovery copies are deleted once you remove the last remaining account. It does not automatically remove session fields already written to existing `clientsettings.json` files. If an installation's `clientsettings.json` cannot be read when a game starts, RiftLauncher moves it aside in the same folder as `clientsettings.unreadable-<time>.json` and writes a fresh one; that kept copy can hold the same session fields and is not removed automatically either.
+**Discord link.** When you link Discord, the launcher stores the launcher token the gate gives it, and your Discord display name, in an encrypted file (`sombreterre-gate.bin`) using the same secure storage. On a computer without secure storage, the token is kept in memory only and you link again the next time the launcher starts. Unlinking deletes the file and asks the gate to revoke the token.
 
-RiftLauncher also writes local logs and caches. Logs contain operational messages and diagnostic errors. The logger redacts recognized passwords, tokens, authorization values, and path patterns before writing them, but you should review a log before sharing it. RiftLauncher does not upload these logs or caches to the project maintainers.
+**Launch ticket.** Right before the game starts, the launcher writes a single-use launch ticket to `ModConfig\sombreterre-ticket.json` in the installation. The game's `sombreterregate` client mod reads it, sends it to the game server and deletes the file.
 
-RiftLauncher reads and writes local game installations, mods, worlds, backups, configuration files, modpack files, and user-selected background or icon files when you ask it to perform those actions. It does not send those files to the RiftLauncher maintainers.
+**Logs.** Logs contain operational messages and errors. Recognized passwords, tokens, authorization values and file paths are redacted before writing, but review a log before sharing it. The launcher never uploads logs.
 
 ## Requests to external services
 
-RiftLauncher makes network requests for launcher functions and user-selected features. On supported packaged builds, it also performs one automatic update check shortly after startup. The Home page loads the YouTube trailer thumbnail when it opens, including on the initial launcher page. Other requests wait for the related launcher action:
+- **The Exiles of Shadowland gate** (`eos-gate.duckdns.org`, HTTPS): the home screen asks for the number of players online and, once you are linked, whether your Discord account may play. Linking, launch tickets, the mod pack and the server's own mods are requested from it. The launcher token is sent to this address and nowhere else.
+- **Discord**: linking opens Discord's own authorization page in your browser. You sign in to Discord there, never in the launcher. The launcher only asks for the `identify` scope, which gives the gate your Discord user ID and name.
+- **Vintage Story** (`api.vintagestory.at`, `cdn.vintagestory.at`): the list of game versions, read when the home screen opens, and the game download when it is not installed yet.
+- **Optimum** (GitHub releases of `StratumServer/Optimum`): the performance patch applied to the game when it is first installed.
+- **Vintage Story ModDB** (`mods.vintagestory.at`, `moddbcdn.vintagestory.at`): details and downloads of the public mods the pack lists.
+- **The game server** (`57.129.112.230`): the game itself connects to it when you press Play.
 
-- The official Vintage Story account service receives login data when you choose to sign in.
-- The official Vintage Story catalog at `api.vintagestory.at` and download service at `cdn.vintagestory.at` receive requests for version manifests and game packages when you browse or install a game version.
-- The Vintage Story ModDB receives requests for mod catalogs, mod details, icons, and downloads when you use mod features.
-- After you accept in the launcher, RiftLauncher makes two requests to its own ModDB listing: one to resolve the file id of the entry named for the version you are running, and one to request that entry's download endpoint. ModDB responds to the second request with a redirect to its CDN. RiftLauncher refuses that redirect, so it does not fetch or retain the pointer archive bytes. The launcher asks again on the first launch of a version you have not answered for, and makes at most one attempt per launch. Answering "Always count me in", in the prompt or in the settings, is the one case where the two requests are made at startup with no prompt, for each new version. Answering "Never ask again" ends both the question and the requests. This flow does not use your Vintage Story credentials.
-- GitHub Releases receives the automatic update check on supported packaged builds and receives an update download only after you choose to download an offered update.
-- When you open background settings, the launcher requests the catalog and its thumbnails from the RiftLauncher `backgrounds` branch on `raw.githubusercontent.com`. It requests a full-size catalog image from the same branch when you choose one.
-- YouTube receives the trailer thumbnail request when the Home page opens. Clicking the trailer opens YouTube in your browser. Other links, such as GitHub issues and Discord, open in the browser only when you choose them.
+These services can receive normal connection metadata, such as your IP address, request times and protocol information. See the [Vintage Story Privacy Policy](https://www.vintagestory.at/privacy/), the [Discord Privacy Policy](https://discord.com/privacy) and the [GitHub General Privacy Statement](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement).
 
-The services above can receive normal connection metadata such as an IP address, request time, and protocol or user-agent information. RiftLauncher does not control their logging or retention. Read the relevant service policy before using that service: [Vintage Story Privacy Policy](https://www.vintagestory.at/privacy/), [ModDB Privacy Policy](https://www.moddb.com/privacy-policy), [GitHub General Privacy Statement](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement), and [Google Privacy Policy](https://policies.google.com/privacy).
+The launcher does not check for its own updates: new versions are installed by hand from the repository's releases.
 
-## What RiftLauncher does not collect
+## What the gate keeps about you
 
-RiftLauncher does not operate a project account service, advertising system, telemetry endpoint, analytics service, or crash-reporting service. It does not sell personal information and does not send local worlds, backups, mods, logs, or configuration files to the project maintainers. The official Vintage Story client may have its own network behavior after RiftLauncher launches it; that behavior is governed by Anego Studios and the official client's policies, not by this project.
+The gate runs on The Exiles of Shadowland game server and is operated by its staff. It keeps:
+
+- your **Discord user ID and display name**, and a **SHA-256 digest of your launcher token** (never the token itself), to recognize your launcher;
+- the **link between your Discord user ID and your Vintage Story player UID**, created the first time you join through the launcher;
+- launch tickets, in memory only, for at most ten minutes.
+
+It reads your membership of the server's Discord guild and your roles through the server's Discord bot, to decide whether you may play. It does not receive your Discord password, email address or messages through the launcher. The game server and its Discord bot keep their own logs, such as connections and the in-game chat relayed to Discord; those are the server's, not the launcher's.
+
+## What the launcher does not do
+
+It has no advertising, telemetry, analytics or crash reporting. It does not sell personal information and does not send your worlds, backups, mods, logs or configuration files to anyone.
 
 ## Retention and deletion
 
-Local data remains on your device until you remove it. Use the remove account control to delete a signed-in account's encrypted session credentials; this removes only the selected account. The encrypted session file and its recovery copies are deleted once you remove the last remaining account. To remove launcher configuration, logs, and caches, use the operating system's application-data controls or remove the RiftLauncher user-data directory after closing the application. Installed game versions, installations, worlds, mods, backups, and `clientsettings.json` files can live in separate directories and require separate review or deletion. Removing RiftLauncher does not promise to remove files that you selected or created outside its installation directory.
+Local data stays on your device until you remove it. Use the account controls to sign out of Vintage Story, and **Unlink Discord** to revoke and delete the launcher token. To remove everything else, close the launcher and delete `%APPDATA%\EoSLauncher` (this also removes the game installed by the launcher).
 
-RiftLauncher has no project server that stores account records or uploaded launcher data. External services retain data they receive according to their own policies.
+To have your Discord link or launcher tokens removed from the gate, ask the server staff on The Exiles of Shadowland Discord.
 
 ## Security
 
-RiftLauncher uses HTTPS for its configured network requests and uses Electron's operating-system-backed secure storage for the session credentials it keeps locally. No local software can guarantee the security of a compromised device. Keep your operating system, game installation, account, and local configuration files protected, and do not share passwords, session values, or unreviewed logs.
+The launcher only contacts the gate over HTTPS and refuses plain HTTP to any host other than your own computer. Session credentials and the launcher token are stored with the operating system's secure storage. No software can protect a compromised computer: keep it up to date, and never share passwords, tokens or unreviewed logs.
 
-## Changes to this policy
+## Changes and contact
 
-The maintainers may update this policy when the application's data handling changes. The date at the top of this page records the latest revision. The public repository and release documentation will link to the current version.
-
-## Contact
-
-For a general privacy question, open an issue in the [RiftLauncher repository](https://github.com/StratumServer/RiftLauncher/issues) or contact the maintainers through the [Stratum Discord server](https://discord.gg/vQm6z2urZs). Do not include passwords, session credentials, account identifiers, or private logs in a public post. For a security report, follow the private reporting instructions in [SECURITY.md](SECURITY.md).
+This policy is updated when the launcher's or the gate's data handling changes; the date at the top records the latest revision. For a privacy question, ask the server staff on The Exiles of Shadowland Discord, or open an issue in the [repository](https://github.com/Tiisma/eos-launcher/issues) without including passwords, tokens or private logs. For a security problem, follow [SECURITY.md](SECURITY.md).
 
 ## Implementation references
 
-The relevant data flows are visible in the public source: [account login](src/ipc/handlers/accountHandlers.ts), [encrypted account storage](src/ipc/accountStore.ts), [client session transfer](src/domain/account/clientSettings.ts), [network allow-list](src/ipc/validation.ts), [ModDB request handling](src/ipc/handlers/netHandlers.ts), and [application updates](src/ipc/handlers/appUpdaterHandlers.ts).
+[Account login](src/ipc/handlers/accountHandlers.ts), [encrypted account storage](src/ipc/accountStore.ts), [Discord link and launch tickets](src/ipc/sombreterreGate.ts), [pack sync](src/ipc/sombreterrePack.ts), [network allow-list](src/ipc/validation.ts), and the gate's [HTTP API](https://github.com/Tiisma/eos-gate/blob/sombreterre-gate/Th3Essentials/Sombreterre/GateHttpApi.cs).

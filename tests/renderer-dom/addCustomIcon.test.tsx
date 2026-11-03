@@ -67,7 +67,7 @@ describe("AddCustomIconPupup refusals", () => {
       pathsManager: { copyToIcons: vi.fn(async () => ({ status: false as const, reason: "source-unavailable" as const })) }
     })
 
-    expect(await screen.findByText("RiftLauncher couldn't read that file. Move it somewhere RiftLauncher can reach, then pick it again.")).toBeTruthy()
+    expect(await screen.findByText("EoS Launcher couldn't read that file. Move it somewhere EoS Launcher can reach, then pick it again.")).toBeTruthy()
   })
 
   it("logs a failed copy as well as telling the player about it", async () => {
@@ -91,7 +91,7 @@ describe("AddCustomIconPupup refusals", () => {
       }
     })
 
-    expect(await screen.findByText("Something went wrong adding that icon. Restart RiftLauncher, and let us know if it keeps happening.")).toBeTruthy()
+    expect(await screen.findByText("Something went wrong adding that icon. Restart EoS Launcher, and let us know if it keeps happening.")).toBeTruthy()
     expect(iconLogLines(api).some((line) => line.startsWith("debug:") && line.includes("bridge-failed") && line.includes("Unauthorized IPC sender"))).toBe(true)
   })
 
@@ -104,7 +104,7 @@ describe("AddCustomIconPupup refusals", () => {
       }
     })
 
-    expect(await screen.findByText("Something went wrong adding that icon. Restart RiftLauncher, and let us know if it keeps happening.")).toBeTruthy()
+    expect(await screen.findByText("Something went wrong adding that icon. Restart EoS Launcher, and let us know if it keeps happening.")).toBeTruthy()
     expect(iconLogLines(api).some((line) => line.startsWith("debug:") && line.includes("bridge-failed") && line.includes("Invalid dialog extensions"))).toBe(true)
   })
 
