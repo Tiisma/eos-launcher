@@ -27,6 +27,7 @@ import { registerAutoUpdaterEvents, scheduleUpdateCheck } from "@src/main/autoUp
 import { installNewestReleaseProvider } from "@src/main/newestReleaseProvider"
 import { basicPasswordStoreSwitch } from "@domain/account/sessionStorage"
 import { canAutoUpdate } from "@domain/appUpdate/canAutoUpdate"
+import { SOMBRETERRE_PROFILE } from "@domain/sombreterre/profile"
 import { resolveAllowPrerelease } from "@domain/appUpdate/betaUpdates"
 import { pruneModIconCache } from "@src/ipc/adapters/modScan"
 import { pruneModCatalogCache } from "@src/ipc/catalogCache"
@@ -151,7 +152,7 @@ function createWindow(): void {
     center: true,
     width: 1280,
     height: 720,
-    title: `RiftLauncher - ${app.getVersion()}`,
+    title: `The Exiles of Shadowland - Launcher ${app.getVersion()}`,
     show: false,
     autoHideMenuBar: true,
     fullscreenable: false,
@@ -362,7 +363,7 @@ app.whenReady().then(async () => {
   })
 
   // Set app user model id for windows
-  electronApp.setAppUserModelId("net.stratumserver.riftlauncher")
+  electronApp.setAppUserModelId("fr.exilesofshadowland.launcher")
   Menu.setApplicationMenu(null)
 
   // Default open or close DevTools by F12 in development and ignore CommandOrControl + R in production.
@@ -396,7 +397,10 @@ app.whenReady().then(async () => {
     env: { UPDATE: process.env["UPDATE"], APPIMAGE: process.env["APPIMAGE"] },
     linuxPackageType: process.platform === "linux" ? readLinuxPackageType() : undefined
   })
-  if (updateDecision.ok) {
+  // The inherited feed is upstream RiftLauncher's releases: following it would replace this fork.
+  if (!SOMBRETERRE_PROFILE.autoUpdate) {
+    logMessage("info", `${LOG_PREFIX} [whenReady] Auto-update disabled by the Sombreterre profile.`)
+  } else if (updateDecision.ok) {
     // Not awaited, so the 88.9 ms of require work inside the asar behind loadAutoUpdater stays off this handler
     // and off the path to the first paint. Nothing downstream of it is time critical: the check
     // it arms does not go out for another five seconds, and every renderer-facing update channel

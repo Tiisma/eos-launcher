@@ -224,7 +224,7 @@ describe("IPC boundary validators", () => {
     const cases = [
       ["password=secret token=abc123 /home/user/private/config.json", "password=[REDACTED] token=[REDACTED] [PATH]"],
       [
-        "Looking for mods at /home/Jane Doe/.config/RiftLauncherInstallations/My New Installation/Mods. and C:\\Users\\Jane Doe\\AppData\\Roaming\\RiftLauncherInstallations\\My World\\Mods.",
+        "Looking for mods at /home/Jane Doe/.config/Installations/My New Installation/Mods. and C:\\Users\\Jane Doe\\AppData\\Roaming\\Installations\\My World\\Mods.",
         "Looking for mods at [PATH] and [PATH]"
       ],
       ["Could not open /home/user/Mods. Check permissions before retrying.", "Could not open [PATH] Check permissions before retrying."],

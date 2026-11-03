@@ -1002,6 +1002,41 @@ declare global {
    */
   type OptimumPatchResult = { ok: true; buildUpdated?: boolean } | { ok: false; reason: OptimumPatchFailureReason; rolledBack?: boolean; missingAssembly?: string }
 
+  /**
+   * Why a Sombreterre pack sync stopped. `modid` names the entry that stopped it, when one did.
+   * See src/ipc/sombreterrePack.ts.
+   */
+  type PackSyncFailureReason =
+    | "bad-manifest-url"
+    | "pack-unreachable"
+    | "bad-manifest"
+    | "game-version-mismatch"
+    | "moddb-unreachable"
+    | "moddb-release-missing"
+    | "download-failed"
+    | "checksum-mismatch"
+    | "bad-archive"
+    | "write-failed"
+    | "refused"
+    | "not-linked"
+    | "not-whitelisted"
+
+  type PackSyncFailure = { ok: false; reason: PackSyncFailureReason; modid?: string }
+
+  type PackSyncResult = { ok: true; downloaded: number; kept: number; removed: number } | PackSyncFailure
+
+  /** Players on the Sombreterre server, as its gate API reports them. See src/ipc/sombreterreGate.ts. */
+  type SombreterreServerStatus = { ok: true; online: number; max: number } | { ok: false }
+
+  /** What the server says about the linked Discord account. `unreachable`: the server did not answer. */
+  type SombreterreMembership = "whitelisted" | "not-whitelisted" | "not-member" | "discord-unavailable" | "unreachable"
+
+  type SombreterreAccountState = { linked: false } | { linked: true; discordName: string; membership: SombreterreMembership }
+
+  type SombreterreLinkResult = { ok: true; discordName: string; persisted: boolean } | { ok: false; reason: "unreachable" | "not-configured" | "expired" | "refused" }
+
+  type SombreterreTicketResult = { ok: true } | { ok: false; reason: "not-linked" | "not-whitelisted" | "unreachable" | "write-failed" | "refused" }
+
   declare module "*.png" {
     const value: string
     export default value

@@ -6,6 +6,13 @@ import ConfigPage from "@renderer/features/config/pages/ConfigPage"
 import { createMockConfig, installMockWindowApi } from "./helpers/windowApi"
 import { renderWithProviders } from "./helpers/render"
 
+// The Sombreterre build hides the picker (src/domain/sombreterre/profile.ts). These tests cover the
+// inherited picker itself, so they run with it handed back to players.
+vi.mock("@domain/sombreterre/profile", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@domain/sombreterre/profile")>()
+  return { ...actual, SOMBRETERRE_PROFILE: { ...actual.SOMBRETERRE_PROFILE, backgroundPicker: true } }
+})
+
 const MANIFEST = JSON.stringify([{ id: "valley-ruins", name: "Valley Ruins", file: "valley-ruins.jpg", thumbnail: "thumbnails/valley-ruins.jpg", sha256: "a".repeat(64) }])
 
 /**

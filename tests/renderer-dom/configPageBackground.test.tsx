@@ -9,6 +9,13 @@ import { backgroundThumbnailSource } from "@renderer/utils/backgroundThumbnail"
 import { createMockConfig, installMockWindowApi, type MockedBridgeAPI } from "./helpers/windowApi"
 import { renderWithProviders } from "./helpers/render"
 
+// The Sombreterre build hides the picker (src/domain/sombreterre/profile.ts). These tests cover the
+// inherited picker itself, so they run with it handed back to players.
+vi.mock("@domain/sombreterre/profile", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@domain/sombreterre/profile")>()
+  return { ...actual, SOMBRETERRE_PROFILE: { ...actual.SOMBRETERRE_PROFILE, backgroundPicker: true } }
+})
+
 const CATALOG_FAILED = "The background list couldn't be loaded. Check your connection and try again."
 const DOWNLOAD_FAILED = "That background couldn't be downloaded. Check your connection and try again."
 const PICKED_PATH = "/home/player/pictures/sunset.jpg"

@@ -74,7 +74,9 @@ function AddVersion(): JSX.Element {
         ? t("features.versions.optimumNoBuildForVersion")
         : ""
 
-  const handleInstallVersion = (): Promise<void> => installVersion(version, folder, withOptimum && optimum.manifest ? optimum.manifest : undefined)
+  const handleInstallVersion = async (): Promise<void> => {
+    await installVersion(version, folder, withOptimum && optimum.manifest ? optimum.manifest : undefined)
+  }
 
   return (
     <ScrollableContainer ref={scrollRef}>

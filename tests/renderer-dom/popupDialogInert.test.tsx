@@ -87,20 +87,8 @@ function renderApp(overrides: WindowApiOverrides = {}): void {
 }
 
 describe("the page behind a dialog", () => {
-  it("is hidden while the dialog the launcher opens by itself is up, and comes back when it is closed", async () => {
-    const user = userEvent.setup()
-    // The default config has not answered the ModDB question, so the launcher asks it on its own.
-    renderApp({ configManager: { getConfig: vi.fn(async () => createMockConfig()) } })
-
-    expect(await screen.findByRole("dialog", { name: "Help other players find RiftLauncher" })).toBeTruthy()
-    const page = pageBehind()
-    expectPageHidden(page)
-
-    await user.keyboard("{Escape}")
-
-    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull())
-    expectPageReturned(page)
-  })
+  // The ModDB listing prompt, the one dialog the launcher opened by itself, is not mounted in the
+  // Sombreterre build (src/renderer/src/App.tsx), so its case is gone from here.
 
   it("is hidden while a dialog opened from the page is up, and the control that opened it gets focus back", async () => {
     const user = userEvent.setup()

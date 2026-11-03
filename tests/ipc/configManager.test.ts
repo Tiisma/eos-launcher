@@ -145,15 +145,15 @@ describe("normalizeConfig: the document itself", () => {
     setDefaultFolderPathRoot(portableRoot)
 
     const result = normalizeConfig({
-      defaultInstallationsFolder: join(appDataFolder, "RiftLauncherInstallations"),
-      defaultVersionsFolder: join(appDataFolder, "RiftLauncherGameVersions"),
+      defaultInstallationsFolder: join(appDataFolder, "Installations"),
+      defaultVersionsFolder: join(appDataFolder, "Versions"),
       backupsFolder: customBackups
     })
 
-    assert.equal(result.defaultInstallationsFolder, join(appDataFolder, "RiftLauncherInstallations"))
-    assert.equal(result.defaultVersionsFolder, join(appDataFolder, "RiftLauncherGameVersions"))
+    assert.equal(result.defaultInstallationsFolder, join(appDataFolder, "Installations"))
+    assert.equal(result.defaultVersionsFolder, join(appDataFolder, "Versions"))
     assert.equal(result.backupsFolder, customBackups)
-    assert.equal(normalizeConfig({}).backupsFolder, join(portableRoot, "RiftLauncherBackups"))
+    assert.equal(normalizeConfig({}).backupsFolder, join(portableRoot, "Backups"))
   })
 
   it("falls back to default window fields when window is not a record", async () => {
@@ -1438,7 +1438,7 @@ describe("getConfig: an unreadable config.json is preserved and recovered (#554)
     const result = await getConfig()
 
     assert.deepEqual(result.installations, [], "nothing recoverable, so the defaults' empty state")
-    assert.equal(result.defaultInstallationsFolder, join(appDataFolder, "RiftLauncherInstallations"))
+    assert.equal(result.defaultInstallationsFolder, join(appDataFolder, "Installations"))
     assert.equal(unreadableCopies().length, 1)
   })
 

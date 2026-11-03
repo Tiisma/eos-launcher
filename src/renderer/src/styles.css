@@ -17,7 +17,7 @@
   --color-zinc-750: #313136;
   --color-zinc-850: #212122;
 
-  --background-image-image-vs: url("./assets/background.jpg");
+  --background-image-image-vs: url("./assets/sombreterre/background.jpg");
 }
 
 @layer utilities {

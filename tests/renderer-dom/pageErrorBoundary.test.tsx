@@ -29,7 +29,7 @@ vi.mock("@renderer/features/installations/pages/ManageMods", () => ({
  */
 const home = vi.hoisted(() => ({ throws: false, message: "Cannot read properties of null (reading 'installations')" }))
 
-vi.mock("@renderer/features/home/pages/HomePage", async (importOriginal) => {
+vi.mock("@renderer/features/sombreterre/pages/SombreterreHome", async (importOriginal) => {
   const actual = await importOriginal<{ default: () => JSX.Element }>()
 
   return {
@@ -86,9 +86,8 @@ describe("a page that throws", () => {
     renderApp()
 
     expect(await findFallback()).toBeTruthy()
-    // The main menu, the session button and the activity center all live outside <main>.
-    expect(screen.getByText("Manage your Installations")).toBeTruthy()
-    expect(screen.getByRole("button", { name: "Log in" })).toBeTruthy()
+    // The way back home lives outside <main>, so it survives the page that threw.
+    expect(screen.getByRole("link", { name: "Go back" })).toBeTruthy()
   })
 
   it("tells the player the launcher still works and where the log is", async () => {
@@ -125,7 +124,7 @@ describe("a page that throws", () => {
     await user.click(goHome)
 
     // The real home page, rendered where the fallback was.
-    expect(await screen.findByRole("heading", { name: "Welcome to RiftLauncher" })).toBeTruthy()
+    expect(await screen.findByRole("heading", { name: "The Exiles of Shadowland" })).toBeTruthy()
     expect(screen.queryByRole("alert", { name: "This page couldn't be displayed" })).toBeNull()
   })
 })

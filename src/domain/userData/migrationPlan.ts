@@ -41,9 +41,10 @@ export type UserDataMigrationAction =
  */
 export const MIGRATED_USER_DATA_ENTRIES = ["config.json", "Icons"] as const
 
-export const DEFAULT_INSTALLATIONS_FOLDER_NAME = "RiftLauncherInstallations"
-export const DEFAULT_VERSIONS_FOLDER_NAME = "RiftLauncherGameVersions"
-export const DEFAULT_BACKUPS_FOLDER_NAME = "RiftLauncherBackups"
+// EoS: these sit inside the launcher's own folder (%APPDATA%/EoSLauncher), not beside RiftLauncher ones.
+export const DEFAULT_INSTALLATIONS_FOLDER_NAME = "Installations"
+export const DEFAULT_VERSIONS_FOLDER_NAME = "Versions"
+export const DEFAULT_BACKUPS_FOLDER_NAME = "Backups"
 
 /**
  * File a failed import leaves in the otherwise empty RiftLauncher folder.

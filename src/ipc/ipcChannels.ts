@@ -88,6 +88,15 @@ export const IPC_CHANNELS = {
     ACQUIRE_LEASE: "installation-activity-acquire-lease",
     RELEASE_LEASE: "installation-activity-release-lease"
   },
+  SOMBRETERRE: {
+    SYNC_PACK: "sombreterre-sync-pack",
+    SYNC_PROGRESS: "sombreterre-sync-progress",
+    SERVER_STATUS: "sombreterre-server-status",
+    ACCOUNT_STATE: "sombreterre-account-state",
+    LINK_DISCORD: "sombreterre-link-discord",
+    UNLINK_DISCORD: "sombreterre-unlink-discord",
+    PREPARE_LAUNCH: "sombreterre-prepare-launch"
+  },
   WORLDS_MANAGER: {
     LIST: "worlds-list",
     BACKUP: "worlds-backup",

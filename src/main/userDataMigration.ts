@@ -16,17 +16,26 @@ import {
 import type { UserDataMigrationAction } from "@domain/userData/migrationPlan"
 
 /** Folder RiftLauncher keeps its own user data in, under the platform's appData. */
-export const RIFT_USER_DATA_FOLDER = "RiftLauncher"
+export const RIFT_USER_DATA_FOLDER = "EoSLauncher"
 
 /** Marker and profile folder are siblings of the install tree, outside NSIS `$INSTDIR`. */
-export const PORTABLE_MARKER_FILE = "RiftLauncher.portable"
-export const PORTABLE_USER_DATA_FOLDER = "RiftLauncherData"
+export const PORTABLE_MARKER_FILE = "EoSLauncher.portable"
+export const PORTABLE_USER_DATA_FOLDER = "EoSLauncherData"
 
 /** Folder VS Launcher keeps its user data in. Read from, never written to. */
 export const LEGACY_USER_DATA_FOLDER = "VSLauncher"
 
+/**
+ * Whether a first start may copy VS Launcher's data in. On unless a caller says otherwise; the
+ * Sombreterre build says otherwise (src/main/bootUserData.ts), since a player's own VS Launcher
+ * Installations have no business in the server's launcher.
+ */
+export interface UserDataImportOptions {
+  importLegacy?: boolean
+}
+
 /** Sibling a migration builds in, renamed onto {@link RIFT_USER_DATA_FOLDER} once complete. */
-export const MIGRATION_TEMP_FOLDER = "RiftLauncher.migrating"
+export const MIGRATION_TEMP_FOLDER = "EoSLauncher.migrating"
 
 /** Portable profile copies are staged beside the destination and renamed into place. */
 export const PORTABLE_MIGRATION_TEMP_SUFFIX = ".migrating"
@@ -416,9 +425,10 @@ function copyLegacyUserDataEntries(legacyPath: string, temporaryPath: string, en
  * every byte it had, and a player can go back to it at any time.
  *
  * @param appDataPath The platform's roaming application-data folder.
+ * @param options `importLegacy: false` ignores the VS Launcher folder entirely, as if it did not exist.
  * @returns The folder to use and what was done to get there.
  */
-export function setUpUserDataFolder(appDataPath: string): UserDataSetup {
+export function setUpUserDataFolder(appDataPath: string, options: UserDataImportOptions = {}): UserDataSetup {
   const riftPath = join(appDataPath, RIFT_USER_DATA_FOLDER)
   const legacyPath = join(appDataPath, LEGACY_USER_DATA_FOLDER)
   const temporaryPath = join(appDataPath, MIGRATION_TEMP_FOLDER)
@@ -428,7 +438,7 @@ export function setUpUserDataFolder(appDataPath: string): UserDataSetup {
   const plan = planUserDataMigration({
     riftExists,
     riftImportPending: markerState === "pending",
-    vslExists: fse.existsSync(legacyPath),
+    vslExists: options.importLegacy !== false && fse.existsSync(legacyPath),
     staleMigrationExists: fse.existsSync(temporaryPath)
   })
 
@@ -515,7 +525,7 @@ function migratePortableDefaultFolders(profilePath: string, sourceProfilePath: s
  * with the profile. The older VS Launcher migration stays limited to its existing
  * config-and-icons allowlist.
  */
-export function setUpPortableUserDataFolder(appDataPath: string, dataPath: string, installPath?: string): UserDataSetup {
+export function setUpPortableUserDataFolder(appDataPath: string, dataPath: string, installPath?: string, options: UserDataImportOptions = {}): UserDataSetup {
   const currentProfilePath = join(appDataPath, RIFT_USER_DATA_FOLDER)
   const legacyProfilePath = join(appDataPath, LEGACY_USER_DATA_FOLDER)
   const temporaryPath = `${dataPath}${PORTABLE_MIGRATION_TEMP_SUFFIX}`
@@ -532,7 +542,7 @@ export function setUpPortableUserDataFolder(appDataPath: string, dataPath: strin
   // the player chose) has no player data in it, so VS Launcher's folder is imported instead.
   const defaultIsMarked = importMarkerState(currentProfilePath, appDataPath) === "pending"
   const hasCurrentProfile = fse.existsSync(currentProfilePath) && !defaultIsMarked
-  const hasLegacyProfile = !hasCurrentProfile && fse.existsSync(legacyProfilePath)
+  const hasLegacyProfile = options.importLegacy !== false && !hasCurrentProfile && fse.existsSync(legacyProfilePath)
 
   // lstat, not stat: a link pointing at a folder elsewhere is not a portable profile, and a
   // profile folder owned by another account is not this player's either.

@@ -7,6 +7,8 @@ import { configSaveFailureMessageKey, initialConfigSaveHealthState, updateConfig
 import { CONFIG_ACTIONS, configReducer, initialState, type ConfigAction } from "@renderer/features/config/contexts/configReducer"
 import { dropRefusedPaths } from "@renderer/features/config/utils/refusedPaths"
 import { applyBackground } from "@renderer/utils/backgroundStyle"
+import { DEFAULT_BACKGROUND_ID } from "@domain/backgrounds"
+import { SOMBRETERRE_PROFILE } from "@domain/sombreterre/profile"
 import { applyAccentColor } from "@renderer/utils/accentStyle"
 import { CURRENT_CONFIG_SCHEMA } from "@domain/config/migrations"
 
@@ -203,7 +205,8 @@ const ConfigProvider = ({ children }: { children: React.ReactNode }): JSX.Elemen
   // Paints the stored choice. Reads nothing but the config, so a launch with no network shows the
   // chosen scene straight from the cache, or the bundled one when that file is not there.
   useEffect(() => {
-    applyBackground(config.background, config._backgroundRevision ?? 0)
+    // Sombreterre: the bundled scene only, unless the profile hands the choice back to players.
+    applyBackground(SOMBRETERRE_PROFILE.backgroundPicker ? config.background : DEFAULT_BACKGROUND_ID, config._backgroundRevision ?? 0)
   }, [config.background, config._backgroundRevision])
 
   // Paints the stored accent the same way, at startup and on every change.

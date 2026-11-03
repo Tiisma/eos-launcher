@@ -11,3 +11,7 @@ build-dir
 
 # The sample game logs the report tests read are fixtures, not logs this repo writes.
 !tests/fixtures/**/*.log
+
+# Sombreterre: private Mod archives are proprietary and never committed.
+pack/*.zip
+dist-*

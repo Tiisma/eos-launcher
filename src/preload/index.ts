@@ -92,6 +92,15 @@ const api: BridgeAPI = {
     forgetPlaySessions: (installationId: string): Promise<{ ok: boolean }> => ipcRenderer.invoke(IPC_CHANNELS.GAME_MANAGER.FORGET_PLAY_SESSIONS, installationId),
     getGameLogReport: (installationPath: string): Promise<GameLogReportResult> => ipcRenderer.invoke(IPC_CHANNELS.GAME_MANAGER.GET_GAME_LOG_REPORT, installationPath)
   },
+  sombreterre: {
+    syncPack: (installationPath: string): Promise<PackSyncResult> => ipcRenderer.invoke(IPC_CHANNELS.SOMBRETERRE.SYNC_PACK, installationPath),
+    onSyncProgress: (callback: (payload: { done: number; total: number }) => void): Unsubscribe => subscribe(IPC_CHANNELS.SOMBRETERRE.SYNC_PROGRESS, callback),
+    serverStatus: (): Promise<SombreterreServerStatus> => ipcRenderer.invoke(IPC_CHANNELS.SOMBRETERRE.SERVER_STATUS),
+    accountState: (): Promise<SombreterreAccountState> => ipcRenderer.invoke(IPC_CHANNELS.SOMBRETERRE.ACCOUNT_STATE),
+    linkDiscord: (): Promise<SombreterreLinkResult> => ipcRenderer.invoke(IPC_CHANNELS.SOMBRETERRE.LINK_DISCORD),
+    unlinkDiscord: (): Promise<void> => ipcRenderer.invoke(IPC_CHANNELS.SOMBRETERRE.UNLINK_DISCORD),
+    prepareLaunch: (installationPath: string): Promise<SombreterreTicketResult> => ipcRenderer.invoke(IPC_CHANNELS.SOMBRETERRE.PREPARE_LAUNCH, installationPath)
+  },
   optimumManager: {
     getManifest: (): Promise<OptimumManifestResult> => ipcRenderer.invoke(IPC_CHANNELS.OPTIMUM_MANAGER.GET_MANIFEST),
     applyOverlay: (id: string, gameDirectory: string, gameVersion: string): Promise<OptimumPatchResult> =>

@@ -459,11 +459,11 @@ describe("restampLinkedOnExternalVersions", () => {
     const doc = {
       schemaVersion: 8,
       // Settings moved the root (nothing was moved on disk), or portable mode rewrote it to the portable data folder.
-      defaultVersionsFolder: "/portable/RiftLauncherGameVersions",
+      defaultVersionsFolder: "/portable/Versions",
       gameVersions: [
-        { version: "1.22.7", path: "/home/user/.config/RiftLauncherGameVersions/1.22.7" },
+        { version: "1.22.7", path: "/home/user/.config/Versions/1.22.7" },
         { version: "1.22.6", path: "C:\\Users\\me\\AppData\\Roaming\\VSLGameVersions\\1.22.6" },
-        { version: "1.22.5", path: "/games/RiftLauncherGameVersions" },
+        { version: "1.22.5", path: "/games/Versions" },
         { version: "1.22.4", path: "/games/other/1.22.4" }
       ]
     }

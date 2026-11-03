@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> **Sombreterre fork.** This copy is customised for the Sombreterre roleplay server: one game version, one server, one pack. See [docs/sombreterre.md](docs/sombreterre.md). The rest of this README describes upstream RiftLauncher.
+
 > [!WARNING]
 > **RiftLauncher is in active development.** A beta prerelease is available on the [releases page](https://github.com/StratumServer/RiftLauncher/releases) for early testing: expect rough edges and breaking changes while the team keeps rebuilding the launcher. Back up your worlds before pointing it at an existing installation, and report anything odd on the issues page or the Discord.
 

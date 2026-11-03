@@ -198,14 +198,14 @@ describe("setUpUserDataFolder", () => {
     mkdirSync(join(riftPath(), "Installations", "survival"), { recursive: true })
     mkdirSync(join(riftPath(), "Installations", "survival", "Cache"), { recursive: true })
     const originalConfig = JSON.stringify({
-      defaultInstallationsFolder: join(appDataPath, "RiftLauncherInstallations"),
-      defaultVersionsFolder: join(appDataPath, "RiftLauncherGameVersions"),
+      defaultInstallationsFolder: join(appDataPath, "Installations"),
+      defaultVersionsFolder: join(appDataPath, "Versions"),
       backupsFolder: join(appDataPath, "player-chosen-backups")
     })
     const originalBackup = JSON.stringify({
-      defaultInstallationsFolder: join(appDataPath, "RiftLauncherInstallations"),
-      defaultVersionsFolder: join(appDataPath, "RiftLauncherGameVersions"),
-      backupsFolder: join(appDataPath, "RiftLauncherBackups")
+      defaultInstallationsFolder: join(appDataPath, "Installations"),
+      defaultVersionsFolder: join(appDataPath, "Versions"),
+      backupsFolder: join(appDataPath, "Backups")
     })
     writeFileSync(join(riftPath(), "config.json"), originalConfig, "utf8")
     writeFileSync(join(riftPath(), "config.pre-migration.bak.json"), originalBackup, "utf8")
@@ -222,14 +222,14 @@ describe("setUpUserDataFolder", () => {
     assert.equal(setup.path, dataPath)
     assert.equal(setup.outcome, "portable-profile-migrated")
     assert.deepEqual(JSON.parse(readFileSync(join(dataPath, "config.json"), "utf8")), {
-      defaultInstallationsFolder: join(dataPath, "RiftLauncherInstallations"),
-      defaultVersionsFolder: join(dataPath, "RiftLauncherGameVersions"),
+      defaultInstallationsFolder: join(dataPath, "Installations"),
+      defaultVersionsFolder: join(dataPath, "Versions"),
       backupsFolder: join(appDataPath, "player-chosen-backups")
     })
     assert.deepEqual(JSON.parse(readFileSync(join(dataPath, "config.pre-migration.bak.json"), "utf8")), {
-      defaultInstallationsFolder: join(dataPath, "RiftLauncherInstallations"),
-      defaultVersionsFolder: join(dataPath, "RiftLauncherGameVersions"),
-      backupsFolder: join(dataPath, "RiftLauncherBackups")
+      defaultInstallationsFolder: join(dataPath, "Installations"),
+      defaultVersionsFolder: join(dataPath, "Versions"),
+      backupsFolder: join(dataPath, "Backups")
     })
     // Chromium rebuilds its disk caches, but the launcher stores user-selected backgrounds under
     // Cache too, so only the known regenerable Chromium subfolders are omitted.
@@ -247,7 +247,7 @@ describe("setUpUserDataFolder", () => {
   it.skipIf(process.platform === "win32")("copies a linked source profile without writing through its symlink", () => {
     const sourcePath = join(appDataPath, "linked-profile-source")
     mkdirSync(sourcePath, { recursive: true })
-    const originalConfig = JSON.stringify({ defaultInstallationsFolder: join(appDataPath, "RiftLauncherInstallations") })
+    const originalConfig = JSON.stringify({ defaultInstallationsFolder: join(appDataPath, "Installations") })
     writeFileSync(join(sourcePath, "config.json"), originalConfig, "utf8")
     symlinkSync(sourcePath, riftPath(), "dir")
     const dataPath = join(appDataPath, "drive", PORTABLE_USER_DATA_FOLDER)
@@ -258,13 +258,13 @@ describe("setUpUserDataFolder", () => {
     assert.equal(lstatSync(dataPath).isSymbolicLink(), false)
     assert.equal(readFileSync(join(sourcePath, "config.json"), "utf8"), originalConfig)
     assert.deepEqual(JSON.parse(readFileSync(join(dataPath, "config.json"), "utf8")), {
-      defaultInstallationsFolder: join(dataPath, "RiftLauncherInstallations")
+      defaultInstallationsFolder: join(dataPath, "Installations")
     })
   })
 
   it.skipIf(process.platform === "win32")("copies linked config files without changing their targets", () => {
     const externalConfigPath = join(appDataPath, "shared-config")
-    const originalConfig = JSON.stringify({ defaultInstallationsFolder: join(appDataPath, "RiftLauncherInstallations") })
+    const originalConfig = JSON.stringify({ defaultInstallationsFolder: join(appDataPath, "Installations") })
     const originalBackup = Buffer.from([0x7b, 0xff, 0x7d])
     writeFileSync(externalConfigPath, originalConfig, "utf8")
     writeFileSync(join(appDataPath, "shared-backup"), originalBackup)
@@ -279,7 +279,7 @@ describe("setUpUserDataFolder", () => {
     assert.deepEqual(readFileSync(join(appDataPath, "shared-backup")), originalBackup)
     assert.equal(lstatSync(join(dataPath, "config.json")).isSymbolicLink(), false)
     assert.equal(lstatSync(join(dataPath, "config.pre-migration.bak.json")).isSymbolicLink(), false)
-    assert.deepEqual(JSON.parse(readFileSync(join(dataPath, "config.json"), "utf8")), { defaultInstallationsFolder: join(dataPath, "RiftLauncherInstallations") })
+    assert.deepEqual(JSON.parse(readFileSync(join(dataPath, "config.json"), "utf8")), { defaultInstallationsFolder: join(dataPath, "Installations") })
     assert.deepEqual(readFileSync(join(dataPath, "config.pre-migration.bak.json")), originalBackup)
   })
 
@@ -548,9 +548,9 @@ describe("setUpUserDataFolder", () => {
     writeFileSync(
       join(riftPath(), "config.json"),
       `\uFEFF${JSON.stringify({
-        defaultInstallationsFolder: join(appDataPath, "RiftLauncherInstallations"),
-        defaultVersionsFolder: join(appDataPath, "RiftLauncherGameVersions"),
-        backupsFolder: join(appDataPath, "RiftLauncherBackups")
+        defaultInstallationsFolder: join(appDataPath, "Installations"),
+        defaultVersionsFolder: join(appDataPath, "Versions"),
+        backupsFolder: join(appDataPath, "Backups")
       })}`,
       "utf8"
     )
@@ -559,9 +559,9 @@ describe("setUpUserDataFolder", () => {
     setUpPortableUserDataFolder(appDataPath, dataPath)
 
     assert.deepEqual(JSON.parse(readFileSync(join(dataPath, "config.json"), "utf8")), {
-      defaultInstallationsFolder: join(dataPath, "RiftLauncherInstallations"),
-      defaultVersionsFolder: join(dataPath, "RiftLauncherGameVersions"),
-      backupsFolder: join(dataPath, "RiftLauncherBackups")
+      defaultInstallationsFolder: join(dataPath, "Installations"),
+      defaultVersionsFolder: join(dataPath, "Versions"),
+      backupsFolder: join(dataPath, "Backups")
     })
   })
 
@@ -1866,5 +1866,29 @@ describe("describeUserDataSetup", () => {
       describeUserDataSetup({ path: "/x", outcome: "fresh", copied: [], cleanedStaleMigration: true }),
       "Created a new RiftLauncher user data folder. Discarded an unfinished migration from an earlier run."
     )
+  })
+})
+
+describe("with the VS Launcher import turned off", () => {
+  it("starts on an empty folder even when a VS Launcher folder is there", () => {
+    seedLegacyFolder()
+
+    const setup = setUpUserDataFolder(appDataPath, { importLegacy: false })
+
+    assert.equal(setup.path, riftPath())
+    assert.equal(setup.outcome, "fresh")
+    assert.deepEqual(setup.copied, [])
+    assert.deepEqual(readdirSync(riftPath()), [])
+  })
+
+  it("does not seed a new portable profile from VS Launcher either", () => {
+    seedLegacyFolder()
+    const dataPath = join(appDataPath, "drive", PORTABLE_USER_DATA_FOLDER)
+
+    const setup = setUpPortableUserDataFolder(appDataPath, dataPath, undefined, { importLegacy: false })
+
+    assert.equal(setup.path, dataPath)
+    assert.deepEqual(setup.copied, [])
+    assert.equal(existsSync(join(dataPath, "config.json")), false)
   })
 })

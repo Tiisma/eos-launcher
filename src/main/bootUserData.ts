@@ -7,6 +7,7 @@ import { readLinuxPackageType } from "@src/main/linuxPackageType"
 import { describePortableDecision, portablePathsForCurrentInstall, selectUserDataFolder } from "@src/main/profileChoice"
 import type { UserDataSelection } from "@src/main/profileChoice"
 import type { UserDataSetup } from "@src/main/userDataMigration"
+import { SOMBRETERRE_PROFILE } from "@domain/sombreterre/profile"
 
 /**
  * Applies the profile decision to the running app, while this module is being imported.
@@ -27,7 +28,7 @@ export interface BootFailure {
 }
 
 /** Holds only Electron's single-instance lock, never a profile. */
-const SINGLE_INSTANCE_LOCK_FOLDER = "RiftLauncher.singleton"
+const SINGLE_INSTANCE_LOCK_FOLDER = "EoSLauncher.singleton"
 
 const appDataPath = app.getPath("appData")
 
@@ -64,10 +65,12 @@ if (failure === null) {
   const portablePaths = portablePathsForCurrentInstall(process.platform, app.getPath("exe"), process.env["APPIMAGE"], process.platform === "linux" ? readLinuxPackageType() : undefined)
 
   try {
-    selection = selectUserDataFolder(appDataPath, portablePaths)
+    selection = selectUserDataFolder(appDataPath, portablePaths, { importLegacy: SOMBRETERRE_PROFILE.importLegacyUserData })
     app.setPath("userData", selection.setup.path)
     app.setPath("sessionData", selection.setup.path)
-    setDefaultFolderPathRoot(selection.portableMode ? selection.setup.path : appDataPath)
+    // EoS: the game folders live inside the profile folder in both modes, so nothing lands beside
+    // another launcher in appData.
+    setDefaultFolderPathRoot(selection.setup.path)
   } catch (error) {
     // Without a profile there is nothing else this process can do. userData is still the lock folder,
     // so nothing is written to a folder the player did not choose, and the entry reports it once

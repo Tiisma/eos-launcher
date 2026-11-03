@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from "react"
 import { HashRouter as Router, Route, Routes, useLocation } from "react-router-dom"
+import { PiArrowLeftDuotone } from "react-icons/pi"
 import { FiLoader } from "react-icons/fi"
 import { useTranslation } from "react-i18next"
 import { AnimatePresence, motion } from "motion/react"
@@ -12,14 +13,14 @@ import { TaskProvider } from "@renderer/contexts/TaskManagerContext"
 import { restoreStoredLanguage } from "./i18n"
 import NotificationsOverlay from "@renderer/components/layout/NotificationsOverlay"
 
-import MainMenu from "@renderer/components/layout/MainMenu"
 import GlobalActionsWrapper from "@renderer/components/layout/GlobalActionsWrapper"
-import DeferredGlobalModUpdateChecker from "@renderer/components/layout/DeferredGlobalModUpdateChecker"
-import ModDbVisibilityPrompt from "@renderer/components/layout/ModDbVisibilityPrompt"
-import WhatsNewDialog from "@renderer/components/layout/WhatsNewDialog"
 import PageErrorBoundary from "@renderer/components/layout/PageErrorBoundary"
+import { LinkButton } from "@renderer/components/ui/Buttons"
 
-const HomePage = lazy(() => import("@renderer/features/home/pages/HomePage"))
+// Sombreterre: the side menu, the mod update checker, the ModDB listing prompt and the release
+// notes dialog are RiftLauncher's own and are not mounted. Their pages stay routed, so a
+// notification that links to one (a session report, say) still lands somewhere.
+const SombreterreHome = lazy(() => import("@renderer/features/sombreterre/pages/SombreterreHome"))
 const ListInslallations = lazy(() => import("@renderer/features/installations/pages/ListInstallations"))
 const AddInslallation = lazy(() => import("@renderer/features/installations/pages/AddInstallation"))
 const EditInslallation = lazy(() => import("@renderer/features/installations/pages/EditInstallation"))
@@ -53,7 +54,6 @@ function App(): JSX.Element {
         <TaskProvider>
           <Router>
             <GlobalActionsWrapper>
-              <DeferredGlobalModUpdateChecker />
               <div
                 className={clsx(
                   "relative w-screen h-screen select-none bg-image-vs bg-center bg-cover",
@@ -63,7 +63,7 @@ function App(): JSX.Element {
                 <div className="w-full h-full flex bg-zinc-950/70">
                   <Loader />
 
-                  <MainMenu />
+                  <BackToHome />
 
                   {/* min-w-0: a flex item will not shrink below its content by default, so one row that cannot
                       wrap would widen the page past the window and cut off the controls on its right. */}
@@ -74,9 +74,6 @@ function App(): JSX.Element {
                   </main>
 
                   <NotificationsOverlay />
-
-                  <ModDbVisibilityPrompt />
-                  <WhatsNewDialog />
                 </div>
               </div>
             </GlobalActionsWrapper>
@@ -96,7 +93,7 @@ function AnimatedRoutes(): JSX.Element {
     <PageErrorBoundary resetKey={location.pathname}>
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
-          <Route path="/" element={<AnimatedRoute element={<HomePage />} />} />
+          <Route path="/" element={<AnimatedRoute element={<SombreterreHome />} />} />
           <Route path="/installations" element={<AnimatedRoute element={<ListInslallations />} />} />
           <Route path="/installations/add" element={<AnimatedRoute element={<AddInslallation />} />} />
           <Route path="/installations/edit/:id" element={<AnimatedRoute element={<EditInslallation />} />} />
@@ -115,6 +112,19 @@ function AnimatedRoutes(): JSX.Element {
         </Routes>
       </AnimatePresence>
     </PageErrorBoundary>
+  )
+}
+
+/** The way back to the one screen players need, on every page that is not it. */
+function BackToHome(): JSX.Element | null {
+  const { t } = useTranslation()
+  const location = useLocation()
+  if (location.pathname === "/") return null
+
+  return (
+    <div className="absolute bottom-2 left-2 z-99">
+      <LinkButton to="/" title={t("generic.goBack")} size="md" variant="secondary" icon={<PiArrowLeftDuotone />} />
+    </div>
   )
 }
 

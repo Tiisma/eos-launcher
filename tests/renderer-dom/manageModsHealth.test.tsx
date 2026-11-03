@@ -465,7 +465,7 @@ describe("ManageMods: the Installation check", () => {
 
   it("names unreadable archives on demand without exposing their paths", async () => {
     const user = userEvent.setup()
-    const root = "C:/Users/player/AppData/RiftLauncherInstallations/Save/Mods"
+    const root = "C:/Users/player/AppData/Installations/Save/Mods"
     renderManageMods({
       modsManager: {
         getInstalledMods: vi.fn(async () => ({

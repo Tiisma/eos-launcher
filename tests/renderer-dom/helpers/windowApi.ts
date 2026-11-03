@@ -139,6 +139,15 @@ export function createMockWindowApi(overrides: WindowApiOverrides = {}): MockedB
       forgetPlaySessions: vi.fn(notMocked("gameManager.forgetPlaySessions")),
       getGameLogReport: vi.fn(async () => ({ ok: false as const, reason: "no-logs" as const }))
     },
+    sombreterre: {
+      syncPack: vi.fn(notMocked("sombreterre.syncPack")),
+      onSyncProgress: vi.fn(noopUnsubscribe),
+      serverStatus: vi.fn(async () => ({ ok: false as const })),
+      accountState: vi.fn(async () => ({ linked: false as const })),
+      linkDiscord: vi.fn(notMocked("sombreterre.linkDiscord")),
+      unlinkDiscord: vi.fn(notMocked("sombreterre.unlinkDiscord")),
+      prepareLaunch: vi.fn(notMocked("sombreterre.prepareLaunch"))
+    },
     optimumManager: {
       // No Optimum unless a test says otherwise: a page that mounts without
       // thinking about forks must render the way it does for a player whose

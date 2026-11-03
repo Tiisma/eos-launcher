@@ -1,0 +1,15 @@
+{
+  "format": 1,
+  "name": "Sombreterre",
+  "gameVersion": "1.22.7",
+  "mods": [
+    { "source": "moddb", "modid": "examplemod", "version": "1.0.0" },
+    {
+      "source": "private",
+      "modid": "sombreterrecore",
+      "version": "0.1.0",
+      "file": "sombreterrecore-0.1.0.zip",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    }
+  ]
+}

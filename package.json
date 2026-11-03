@@ -1,7 +1,7 @@
 {
-  "name": "riftlauncher",
+  "name": "eos-launcher",
   "version": "1.7.0-beta.15",
-  "description": "RiftLauncher for Vintage Story",
+  "description": "The Exiles of Shadowland - Launcher, for Vintage Story",
   "overrides": {
     "js-yaml": "^4.3.2",
     "tar": "7.5.22"
@@ -28,6 +28,8 @@
     "headless:cdp": "node scripts/headless/cdp.mjs",
     "headless:stop": "scripts/headless/stop.sh",
     "start": "electron-vite preview",
+    "pack:serve": "node scripts/sombreterre/pack.mjs serve pack 8787",
+    "pack:hash": "node scripts/sombreterre/pack.mjs hash",
     "dev": "electron-vite dev --watch",
     "build": "npm run typecheck && electron-vite build",
     "postinstall": "electron-builder install-app-deps && node scripts/fix-native-deps.js",

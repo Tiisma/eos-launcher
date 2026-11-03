@@ -20,7 +20,7 @@ import type { UserDataSelection } from "@src/main/profileChoice"
  * only after it.
  */
 
-const SINGLE_INSTANCE_LOCK_FOLDER = "RiftLauncher.singleton"
+const SINGLE_INSTANCE_LOCK_FOLDER = "EoSLauncher.singleton"
 
 /** Per test, and deliberately not created: a first run on a fresh account has no profile folder. */
 let workDir = ""
@@ -146,13 +146,13 @@ describe("the boot module wires the profile into a running app", () => {
     assert.equal(module.bootFailure, null)
   })
 
-  it("points userData and sessionData at the chosen profile and roots the default folder beside appData", async () => {
+  it("points userData and sessionData at the chosen profile and roots the default folders inside that profile", async () => {
     vi.mocked(selectUserDataFolder).mockReturnValue(selection("/profiles/default", false))
     const module = await boot()
 
     assert.ok(state.calls.includes("setPath:userData=/profiles/default"))
     assert.ok(state.calls.includes("setPath:sessionData=/profiles/default"))
-    assert.deepEqual(vi.mocked(setDefaultFolderPathRoot).mock.calls, [[appDataPath]])
+    assert.deepEqual(vi.mocked(setDefaultFolderPathRoot).mock.calls, [["/profiles/default"]])
     assert.equal(module.bootFailure, null)
     assert.equal(module.portableMode, false)
     assert.equal(module.portableNote, "")

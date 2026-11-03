@@ -25,8 +25,12 @@ const LOG_TAG = "[front] [versions] [features/versions/hooks/useInstallVersion.t
  * of the official one. The vanilla install runs first and unchanged either way:
  * Optimum patches a build the launcher downloaded itself, so a refused patch
  * leaves a working official build on the list rather than nothing at all.
+ *
+ * Resolves true once the official build is installed, whatever became of Optimum. `stayOnPage`
+ * keeps the caller's page on screen instead of moving to the versions list, for the Sombreterre
+ * home screen, which drives the install itself.
  */
-export function useInstallVersion(): (version: DownloadableGameVersionTypeType | undefined, folder: string, optimum?: OptimumManifestInfo) => Promise<void> {
+export function useInstallVersion(): (version: DownloadableGameVersionTypeType | undefined, folder: string, optimum?: OptimumManifestInfo, options?: { stayOnPage?: boolean }) => Promise<boolean> {
   const { t } = useTranslation()
   const { addNotification } = useNotificationsContext()
   const installedGameVersions = useGameVersions()
@@ -36,8 +40,11 @@ export function useInstallVersion(): (version: DownloadableGameVersionTypeType |
   const { applyOptimum } = useOptimumActions()
   const navigate = useNavigate()
 
-  return async function installVersion(version, folder, optimum) {
-    if (!version) return addNotification(t("features.versions.noVersionSelected"), "error")
+  return async function installVersion(version, folder, optimum, options) {
+    if (!version) {
+      addNotification(t("features.versions.noVersionSelected"), "error")
+      return false
+    }
 
     const folderName = folder.split(/[\\/]/).filter(Boolean).at(-1) ?? folder
     const ports = createInstallPorts({
@@ -76,7 +83,7 @@ export function useInstallVersion(): (version: DownloadableGameVersionTypeType |
               type: CONFIG_ACTIONS.ADD_GAME_VERSION,
               payload: { id: gameVersionId, label: version.version, version: version.version, path: folder, _installing: true, incomplete: true }
             })
-          navigate("/versions")
+          if (!options?.stayOnPage) navigate("/versions")
         },
         onInstalled: () => configDispatch({ type: CONFIG_ACTIONS.EDIT_GAME_VERSION, payload: { id: gameVersionId, updates: { _installing: undefined, incomplete: undefined } } }),
         // A row picked up again stays on the list as an interrupted install, so a second failure
@@ -92,7 +99,7 @@ export function useInstallVersion(): (version: DownloadableGameVersionTypeType |
 
     if (result.ok) {
       if (optimum) await applyOptimum({ id: gameVersionId, path: folder, version: version.version }, optimum)
-      return
+      return true
     }
 
     const { messageKey, logged } = describeInstallFailure(result.reason)
@@ -103,5 +110,6 @@ export function useInstallVersion(): (version: DownloadableGameVersionTypeType |
     }
 
     addNotification(t(messageKey, { version: version.version, folder }), "error")
+    return false
   }
 }

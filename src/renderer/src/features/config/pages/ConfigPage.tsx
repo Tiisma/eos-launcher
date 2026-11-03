@@ -5,6 +5,7 @@ import { PiMagnifyingGlassDuotone } from "react-icons/pi"
 import clsx from "clsx"
 
 import { CUSTOM_BACKGROUND_ID, DEFAULT_BACKGROUND_ID } from "@domain/backgrounds"
+import { SOMBRETERRE_PROFILE } from "@domain/sombreterre/profile"
 import { ACCENT_PRESETS } from "@domain/accentColors"
 import { resolveAllowPrerelease } from "@domain/appUpdate/betaUpdates"
 import { MODDB_VISIBILITY_ALWAYS, MODDB_VISIBILITY_ASK, MODDB_VISIBILITY_NEVER, type ModDbVisibilityPolicy } from "@domain/moddbVisibility"
@@ -16,7 +17,7 @@ import { useSettingsConfig, useConfigDispatch, CONFIG_ACTIONS } from "@renderer/
 import { useNotificationsContext } from "@renderer/contexts/NotificationsContext"
 import { useExternalLinks } from "@renderer/hooks/useExternalLinks"
 
-import defaultBackground from "@renderer/assets/background.jpg"
+import defaultBackground from "@renderer/assets/sombreterre/background.jpg"
 
 import {
   FormBody,
@@ -107,15 +108,17 @@ function ConfigPage(): JSX.Element {
               </FormBody>
             </FromGroup>
 
-            <FromGroup>
-              <FormHead>
-                <FormLabel content={t("features.config.background")} />
-              </FormHead>
+            {SOMBRETERRE_PROFILE.backgroundPicker && (
+              <FromGroup>
+                <FormHead>
+                  <FormLabel content={t("features.config.background")} />
+                </FormHead>
 
-              <FormBody>
-                <BackgroundPicker />
-              </FormBody>
-            </FromGroup>
+                <FormBody>
+                  <BackgroundPicker />
+                </FormBody>
+              </FromGroup>
+            )}
 
             <FromGroup>
               <FormHead>

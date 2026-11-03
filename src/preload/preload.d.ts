@@ -98,6 +98,18 @@ declare global {
       /** Reads the last session's own log files out of one Installation and answers the report built from them. See #462. */
       getGameLogReport: (installationPath: string) => Promise<GameLogReportResult>
     }
+    /** The Sombreterre pack: one call that brings an Installation's Mods in line with the server's. */
+    sombreterre: {
+      syncPack: (installationPath: string) => Promise<PackSyncResult>
+      onSyncProgress: (callback: (payload: { done: number; total: number }) => void) => Unsubscribe
+      serverStatus: () => Promise<SombreterreServerStatus>
+      accountState: () => Promise<SombreterreAccountState>
+      /** Opens Discord in the browser and resolves once the player approved, refused or gave up. */
+      linkDiscord: () => Promise<SombreterreLinkResult>
+      unlinkDiscord: () => Promise<void>
+      /** Fetches a launch ticket and writes it into the Installation for the client gate mod. */
+      prepareLaunch: (installationPath: string) => Promise<SombreterreTicketResult>
+    }
     optimumManager: {
       /** Optimum's published overlay for this machine, or the one reason no Optimum is offered this session. Never rejects. */
       getManifest: () => Promise<OptimumManifestResult>

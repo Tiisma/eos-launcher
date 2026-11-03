@@ -1,6 +1,6 @@
 import { backgroundCacheFileName, DEFAULT_BACKGROUND_ID } from "@domain/backgrounds"
 
-import defaultBackground from "@renderer/assets/background.jpg"
+import defaultBackground from "@renderer/assets/sombreterre/background.jpg"
 
 /**
  * The Tailwind theme variable behind the `bg-image-vs` utility (src/renderer/src/styles.css).

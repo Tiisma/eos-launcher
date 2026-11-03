@@ -849,6 +849,69 @@
       "copyFailed": "The report could not be copied.",
       "lastSessionReport": "Last session report",
       "lastSessionReportDesc": "What the game's own logs say about the last time this Installation ran."
+    },
+    "sombreterre": {
+      "play": "Play",
+      "serverLine": "Vintage Story {{version}} · server mods kept up to date",
+      "phase": {
+        "installingGame": "Installing the game…",
+        "preparingInstallation": "Preparing the game folder…",
+        "syncingMods": "Checking the server's mods…",
+        "syncingModsProgress": "Downloading mods: {{done}} of {{total}}",
+        "playing": "Game running"
+      },
+      "catalogUnreachable": "Game not installed: the Vintage Story version list could not be reached. Check your connection, then try again.",
+      "versionUnavailable": "Game not installed: Vintage Story {{version}} is not on the official version list. Tell the server staff.",
+      "optimumUnavailable": "Optimum is not available for Vintage Story {{version}} yet: installing the official build instead.",
+      "installationFailed": "Game folder not ready: the launcher could not create or save it. Check the folders on the settings page, then try again.",
+      "unexpectedError": "Something went wrong while preparing the game. Try again, and send the launcher logs to the server staff if it keeps happening.",
+      "syncFailed": {
+        "bad-manifest-url": "Mods not updated: the pack address in this launcher is not one it may use. Ask the server staff for a fixed launcher.",
+        "pack-unreachable": "Mods not updated: the server's pack could not be reached. Check your connection, then try again.",
+        "bad-manifest": "Mods not updated: the server's pack list is unreadable. Tell the server staff.",
+        "game-version-mismatch": "Mods not updated: the server's pack is for another game version than this launcher. Ask the server staff for an updated launcher.",
+        "moddb-unreachable": "Mods not updated: the ModDB did not answer for {{modid}}. Try again in a moment.",
+        "moddb-release-missing": "Mods not updated: the ModDB has no release of {{modid}} at the version the server needs. Tell the server staff.",
+        "download-failed": "Mods not updated: {{modid}} could not be downloaded. Check your connection, then try again.",
+        "checksum-mismatch": "Mods not updated: {{modid}} does not match the file the server published. Try again, and tell the server staff if it keeps happening.",
+        "bad-archive": "Mods not updated: {{modid}} is not a usable mod archive. Tell the server staff.",
+        "write-failed": "Mods not updated: the Mods folder could not be written. Check that the game is closed and the disk has room, then try again.",
+        "refused": "Mods not updated: an update is already running for this game folder. Wait for it to finish.",
+        "not-linked": "Mods not updated: this launcher is no longer linked to Discord. Link it again from the home screen.",
+        "not-whitelisted": "Mods not updated: your whitelist is not validated. Check The Exiles of Shadowland Discord."
+      },
+      "ticketFailed": {
+        "not-linked": "Game not started: this launcher is no longer linked to Discord. Link it again from the home screen.",
+        "not-whitelisted": "Game not started: your whitelist is not validated. Check The Exiles of Shadowland Discord.",
+        "unreachable": "Game not started: the server did not answer. Try again in a moment.",
+        "write-failed": "Game not started: the launch ticket could not be written to the game folder. Check that the disk has room, then try again.",
+        "refused": "Game not started: the game folder is not one this launcher manages. Restart the launcher, then try again."
+      },
+      "players": {
+        "loading": "Looking for the server…",
+        "online": "{{online}} / {{max}} players online",
+        "offline": "Server unreachable"
+      },
+      "discord": {
+        "link": "Link my Discord",
+        "linking": "Waiting for Discord…",
+        "unlink": "Unlink Discord",
+        "why": "The Exiles of Shadowland is played with your Discord account: link it once, then Play does the rest.",
+        "linked": "Discord linked: {{name}}.",
+        "notPersisted": "This computer has no secure storage: the Discord link only lasts until the launcher closes.",
+        "linkFailed": {
+          "unreachable": "Discord not linked: the server did not answer. Try again in a moment.",
+          "not-configured": "Discord not linked: the server has not set up Discord yet. Tell the server staff.",
+          "expired": "Discord not linked: the link took too long. Click Link my Discord to start again.",
+          "refused": "Discord not linked: Discord did not confirm the connection. Click Link my Discord to try again."
+        },
+        "membership": {
+          "not-whitelisted": "Your whitelist has not been validated yet. Check The Exiles of Shadowland Discord.",
+          "not-member": "Join The Exiles of Shadowland Discord server to play.",
+          "discord-unavailable": "The server cannot reach Discord right now. Try again in a moment.",
+          "unreachable": "The server did not answer. Try again in a moment."
+        }
+      }
     }
   },
   "components": {

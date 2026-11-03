@@ -75,9 +75,9 @@ function minimalConfig(overrides: Partial<ConfigType> = {}): ConfigType {
   return {
     schemaVersion: 1,
     lastUsedInstallation: null,
-    defaultInstallationsFolder: join(appDataFolder, "RiftLauncherInstallations"),
-    defaultVersionsFolder: join(appDataFolder, "RiftLauncherGameVersions"),
-    backupsFolder: join(appDataFolder, "RiftLauncherBackups"),
+    defaultInstallationsFolder: join(appDataFolder, "Installations"),
+    defaultVersionsFolder: join(appDataFolder, "Versions"),
+    backupsFolder: join(appDataFolder, "Backups"),
     window: { width: 1280, height: 720, x: 0, y: 0, maximized: false },
     accounts: [],
     activeAccountId: null,
@@ -109,7 +109,7 @@ describe("GET_CONFIG", () => {
     const event = await createTrustedEvent()
     const config = await getConfigHandler()(event)
     assert.deepEqual(config.installations, [])
-    assert.equal(config.defaultInstallationsFolder, join(appDataFolder, "RiftLauncherInstallations"))
+    assert.equal(config.defaultInstallationsFolder, join(appDataFolder, "Installations"))
   })
 })
 
@@ -218,7 +218,7 @@ describe("SAVE_CONFIG", () => {
 
     it("names only the folders that were refused", async () => {
       const gameFolder = join(temporaryRoot, "Games", "Vintagestory")
-      const insideVersionsFolder = join(appDataFolder, "RiftLauncherGameVersions", "1.21.0")
+      const insideVersionsFolder = join(appDataFolder, "Versions", "1.21.0")
       mkdirSync(gameFolder, { recursive: true })
       const event = await createTrustedEvent()
       const start = await getConfigHandler()(event)
@@ -249,12 +249,12 @@ describe("SAVE_CONFIG", () => {
 
     // Round-trips through the real getConfig(), proving the write landed.
     const reread = await getConfigHandler()(event)
-    assert.equal(reread.defaultInstallationsFolder, join(appDataFolder, "RiftLauncherInstallations"))
+    assert.equal(reread.defaultInstallationsFolder, join(appDataFolder, "Installations"))
   })
 
   it("reconciles worldBackups from current config when the renderer saves an installation", async () => {
     const event = await createTrustedEvent()
-    const validPath = join(appDataFolder, "RiftLauncherInstallations", "test-install")
+    const validPath = join(appDataFolder, "Installations", "test-install")
     mkdirSync(validPath, { recursive: true })
 
     const existingBackup: WorldBackupType = {
@@ -371,7 +371,7 @@ describe("SAVE_CONFIG", () => {
 describe("SAVE_CONFIG with an install that has not finished", () => {
   it("still reads as an unfinished install on the next start", async () => {
     const event = await createTrustedEvent()
-    const folder = join(appDataFolder, "RiftLauncherGameVersions", "1.22.7")
+    const folder = join(appDataFolder, "Versions", "1.22.7")
     const installing = { id: "gv-1", label: "1.22.7", version: "1.22.7", path: folder, _installing: true, incomplete: true }
 
     const result = await saveConfigHandler()(event, minimalConfig({ gameVersions: [installing] as unknown as GameVersionType[] }))
@@ -389,7 +389,7 @@ describe("SAVE_CONFIG with an install that has not finished", () => {
 
   it("writes a build that finished with no mark at all", async () => {
     const event = await createTrustedEvent()
-    const folder = join(appDataFolder, "RiftLauncherGameVersions", "1.22.7")
+    const folder = join(appDataFolder, "Versions", "1.22.7")
 
     await saveConfigHandler()(event, minimalConfig({ gameVersions: [{ id: "gv-1", label: "1.22.7", version: "1.22.7", path: folder }] }))
 

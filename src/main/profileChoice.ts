@@ -1,7 +1,7 @@
 import fse from "fs-extra"
 
 import { getPortableUserDataPaths, isOwnedByThisUser, setUpPortableUserDataFolder, setUpUserDataFolder } from "@src/main/userDataMigration"
-import type { PortableUserDataPaths, UserDataSetup } from "@src/main/userDataMigration"
+import type { PortableUserDataPaths, UserDataImportOptions, UserDataSetup } from "@src/main/userDataMigration"
 
 /**
  * Chooses the profile folder before anything else in the process can touch one.
@@ -63,17 +63,17 @@ export function portablePathsForCurrentInstall(
  * Plain data in, plain data out, so the choice is testable without an Electron process;
  * src/main/bootUserData.ts is the half that has to touch `app`.
  */
-export function selectUserDataFolder(appDataPath: string, portablePaths: PortableUserDataPaths | null): UserDataSelection {
+export function selectUserDataFolder(appDataPath: string, portablePaths: PortableUserDataPaths | null, options: UserDataImportOptions = {}): UserDataSelection {
   if (portablePaths !== null) {
     if (isTrustedPortableMarker(portablePaths.markerPath)) {
-      return { setup: setUpPortableUserDataFolder(appDataPath, portablePaths.dataPath, portablePaths.installPath), portableMode: true, rejectedMarker: false }
+      return { setup: setUpPortableUserDataFolder(appDataPath, portablePaths.dataPath, portablePaths.installPath, options), portableMode: true, rejectedMarker: false }
     }
     if (fse.existsSync(portablePaths.markerPath)) {
-      return { setup: setUpUserDataFolder(appDataPath), portableMode: false, rejectedMarker: true }
+      return { setup: setUpUserDataFolder(appDataPath, options), portableMode: false, rejectedMarker: true }
     }
   }
 
-  return { setup: setUpUserDataFolder(appDataPath), portableMode: false, rejectedMarker: false }
+  return { setup: setUpUserDataFolder(appDataPath, options), portableMode: false, rejectedMarker: false }
 }
 
 /**
