@@ -97,9 +97,9 @@ export interface BuildGameLaunchPlanInput {
   /** Resolved Linux wrapper command, or empty when the game runs directly. */
   launchWrapper?: string
   /**
-   * The server to connect to, spelled by `joinTargetUrl` in src/domain/servers/bookmarks.ts, or
-   * absent for a plain launch. Passed as its own `-c <url>` pair, which is the form the game's own
-   * `Vintagestory_url_connect.desktop` handler uses.
+   * The server to connect to, as `formatServerEndpoint` in src/domain/servers/bookmarks.ts spells it
+   * (`host:port`), or absent for a plain launch. Passed as its own `-c` pair. Not the
+   * `vintagestoryjoin://` form a browser link uses: for that one the game asks before joining.
    */
   connectTarget?: string
 }

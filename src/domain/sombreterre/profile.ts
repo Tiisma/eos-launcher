@@ -22,8 +22,13 @@ export interface SombreterreProfile {
   installationId: string
   /** The only game version the launcher installs and launches. */
   gameVersion: string
-  /** Whether the build is patched with the latest Optimum release that supports {@link gameVersion}. */
+  /** Whether the build is patched with Optimum. */
   optimum: boolean
+  /**
+   * The Optimum release installed, pinned like {@link gameVersion} so a new Optimum (for a newer game
+   * version, say) never reaches players before the server has moved to it. Empty for the latest.
+   */
+  optimumVersion: string
   server: SombreterreServer
   /**
    * Base address of the server's gate API (the SombreterreGate module of the server mod), ending
@@ -56,6 +61,7 @@ export const SOMBRETERRE_PROFILE: SombreterreProfile = {
   installationId: "sombreterre",
   gameVersion: "1.22.7",
   optimum: true,
+  optimumVersion: "0.3.22",
   server: { id: "sombreterre-server", name: "The Exiles of Shadowland", host: "57.129.112.230", port: 42420 },
   gateBaseUrl: "https://eos-gate.duckdns.org:8443/",
   packManifestUrl: "https://eos-gate.duckdns.org:8443/api/pack.json",

@@ -95,6 +95,8 @@ describe("addresses built by the launcher", () => {
     assert.equal(optimumManifestFileName("win-x64"), "optimum-manifest-win-x64.json")
     assert.equal(optimumManifestDownloadUrl("linux-x64"), "https://github.com/StratumServer/Optimum/releases/latest/download/optimum-manifest-linux-x64.json")
     assert.equal(optimumManifestDownloadUrl("win-x64"), "https://github.com/StratumServer/Optimum/releases/latest/download/optimum-manifest-win-x64.json")
+    assert.equal(optimumManifestDownloadUrl("win-x64", "0.3.22"), "https://github.com/StratumServer/Optimum/releases/download/v0.3.22/optimum-manifest-win-x64.json")
+    assert.equal(optimumManifestDownloadUrl("win-x64", "../evil"), "https://github.com/StratumServer/Optimum/releases/latest/download/optimum-manifest-win-x64.json")
   })
 
   it("builds the download URL from the version and the checked file name", () => {

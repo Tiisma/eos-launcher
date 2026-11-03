@@ -5,7 +5,7 @@ This repository is a local fork of [RiftLauncher](https://github.com/StratumServ
 ## What the fork changes
 
 - **One screen.** The side menu is gone. The home screen shows the server name over the launcher background and a single **Play** button, plus the account button, the activity center and a settings link. Every other page is still routed, just not linked from the home screen.
-- **One game version.** Play installs Vintage Story `1.22.7` if it is missing, patched with the latest Optimum release when that release supports `1.22.7` (otherwise the official build, with a warning).
+- **One game version.** Play installs Vintage Story `1.22.7` if it is missing, patched with Optimum `0.3.22` (pinned in the profile, like the game version, so a newer Optimum never reaches players before the server moves to it).
 - **One Installation.** Play creates (or repairs) the `Sombreterre` Installation, pointed at that build, with the server saved as its only bookmark.
 - **One pack.** Before each launch, the Installation's `Mods` folder is synced with the pack manifest: ModDB Mods at pinned versions, plus private Mods served next to the manifest.
 - **Discord gate.** Until the launcher is linked to a Discord account, the home screen offers "Link my Discord" instead of Play. Play stays locked until the server says that account is whitelisted. The home screen also shows the players online.

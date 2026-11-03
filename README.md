@@ -24,7 +24,7 @@ The launcher keeps everything in `%APPDATA%\EoSLauncher` (the game, its folder, 
 
 ## What it does
 
-- **Pinned game version**: Vintage Story 1.22.7, with the latest Optimum release that supports it.
+- **Pinned game version**: Vintage Story 1.22.7 with Optimum 0.3.22, both moved only when the server moves.
 - **Server mod pack**: the server publishes its pack; the launcher downloads public mods from the ModDB and the server's own mods from the server, checks every archive's SHA-256, and only removes files it installed itself.
 - **Discord whitelist**: the launcher is linked to a Discord account once. The server only lets in players whose Discord account holds the whitelist role, and a single-use launch ticket proves each connection came from the launcher, so no command is ever typed in game.
 - **Straight to the server**: the game starts connected to the server, without its main menu.

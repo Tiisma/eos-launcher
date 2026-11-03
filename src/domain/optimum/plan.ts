@@ -18,9 +18,14 @@ export function optimumManifestFileName(rid: OptimumRid): string {
   return `optimum-manifest-${rid}.json`
 }
 
-/** Where the newest manifest for one supported platform is read from. */
-export function optimumManifestDownloadUrl(rid: OptimumRid): string {
-  return `https://github.com/StratumServer/Optimum/releases/latest/download/${optimumManifestFileName(rid)}`
+/**
+ * Where the manifest for one supported platform is read from: the newest release, or the release of
+ * one pinned version ("0.3.22"), so a new Optimum that drops the pinned game version is never picked
+ * up. A pin that is not a plain three-part version is ignored rather than spliced into a URL.
+ */
+export function optimumManifestDownloadUrl(rid: OptimumRid, pinnedVersion?: string): string {
+  const release = pinnedVersion && /^\d+\.\d+\.\d+$/.test(pinnedVersion) ? `download/v${pinnedVersion}` : "latest/download"
+  return `https://github.com/StratumServer/Optimum/releases/${release}/${optimumManifestFileName(rid)}`
 }
 
 /**

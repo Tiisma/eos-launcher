@@ -21,7 +21,7 @@ import { buildSessionReport, type InstalledModRef } from "@domain/gameLogs/repor
 import { scanInstalledMods } from "@domain/mods/scanInstalled"
 import { createScanInstalledModsPorts } from "@src/ipc/adapters/modScan"
 import { buildGameLaunchPlan } from "@domain/versions/launch"
-import { joinTargetUrl, resolveServerBookmark } from "@domain/servers/bookmarks"
+import { formatServerEndpoint, resolveServerBookmark } from "@domain/servers/bookmarks"
 import { unreadableCopyName } from "@domain/naming"
 import { CLIENT_SETTINGS_FILE_NAME, clearForeignClientSettingsSession, reconcileClientSettingsAfterPlay, writeClientSettingsSession, type AccountSessionFields } from "@domain/account/clientSettings"
 import { MODS_FOLDER_NAME } from "@domain/mods/folder"
@@ -345,7 +345,9 @@ ipcMain.handle(IPC_CHANNELS.GAME_MANAGER.EXECUTE_GAME, async (event, version: un
       logMessage("warn", `${LOG_PREFIX} [EXECUTE_GAME] Refused a server that is not one this installation has saved.`)
       return invalidRequestResult()
     }
-    connectTarget = joinTargetUrl(bookmark)
+    // The bare endpoint, not the vintagestoryjoin:// form: the game asks "join this server?" for
+    // the latter, since it is what a link clicked in a browser uses, and connects straight for the former.
+    connectTarget = formatServerEndpoint(bookmark)
     // One fixed line, and nothing of the server in it. A server address is somebody's machine,
     // often somebody's home, and redactSensitiveText strips paths rather than host names.
     logMessage("info", `${LOG_PREFIX} [EXECUTE_GAME] Joining a saved server.`)

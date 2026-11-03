@@ -23,6 +23,7 @@ import fse from "fs-extra"
 import { join } from "node:path"
 
 import { parseOptimumManifest, type OptimumManifest } from "@domain/optimum/manifest"
+import { SOMBRETERRE_PROFILE } from "@domain/sombreterre/profile"
 import { hostRid, optimumManifestDownloadUrl, optimumManifestFileName, overlayCacheFolder, overlayDownloadUrl } from "@domain/optimum/plan"
 import { optimumTestOrigin } from "@src/ipc/validation"
 import { getErrorMessage, logMessage } from "@src/utils/logManager"
@@ -46,7 +47,7 @@ const MAX_OPTIMUM_MANIFEST_BYTES = 256 * 1024
  */
 function manifestSourceUrl(rid: NonNullable<ReturnType<typeof hostRid>>): string {
   const origin = optimumTestOrigin()
-  return origin === undefined ? optimumManifestDownloadUrl(rid) : `${origin}/${optimumManifestFileName(rid)}`
+  return origin === undefined ? optimumManifestDownloadUrl(rid, SOMBRETERRE_PROFILE.optimumVersion) : `${origin}/${optimumManifestFileName(rid)}`
 }
 
 export function overlaySourceUrl(manifest: OptimumManifest): string {
