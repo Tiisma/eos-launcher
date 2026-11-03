@@ -5,6 +5,7 @@ import type { AddressInfo } from "node:net"
 import { join } from "node:path"
 import fse from "fs-extra"
 
+import { formatServerEndpoint } from "@domain/servers/bookmarks"
 import { SOMBRETERRE_PROFILE } from "@domain/sombreterre/profile"
 import { writeJsonAtomic } from "@src/ipc/atomicJsonFile"
 import { BoundedResponseError, requestBoundedText } from "@src/ipc/network"
@@ -270,7 +271,8 @@ export async function gateRequestHeaders(): Promise<Record<string, string>> {
 
 /**
  * Asks the server for a launch ticket and leaves it where the client mod reads it, in the
- * Installation's ModConfig. A ticket is single use and short lived, so one is fetched per launch.
+ * Installation's ModConfig, with the server address. One is fetched per launch; the server binds it to the
+ * player's game account on first use, for the rest of that game session.
  */
 export async function prepareLaunchTicket(installationPath: string): Promise<SombreterreTicketResult> {
   let ticket: string
@@ -289,7 +291,8 @@ export async function prepareLaunchTicket(installationPath: string): Promise<Som
 
   try {
     await fse.ensureDir(join(installationPath, "ModConfig"))
-    await writeJsonAtomic(join(installationPath, "ModConfig", TICKET_FILE_NAME), { Ticket: ticket })
+    // The server address lets the game's own Play button (client mod 0.2.0+) reconnect with this ticket.
+    await writeJsonAtomic(join(installationPath, "ModConfig", TICKET_FILE_NAME), { Ticket: ticket, Server: formatServerEndpoint(SOMBRETERRE_PROFILE.server) })
     return { ok: true }
   } catch (error) {
     logMessage("warn", `${LOG_PREFIX} [prepareLaunchTicket] Could not write the launch ticket: ${getErrorMessage(error)}`)
