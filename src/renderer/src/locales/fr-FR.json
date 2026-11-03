@@ -913,14 +913,18 @@
         "write-failed": "Mods non mis à jour : impossible d'écrire dans le dossier Mods. Vérifie que le jeu est fermé et que le disque a de la place, puis réessaie.",
         "refused": "Mods non mis à jour : une mise à jour est déjà en cours pour ce dossier de jeu. Attends qu'elle se termine.",
         "not-linked": "Mods non mis à jour : ce launcher n'est plus lié à Discord. Lie-le à nouveau depuis l'accueil.",
-        "not-whitelisted": "Mods non mis à jour : ta whitelist n'est pas validée. Consulte le Discord de The Exiles of Shadowland."
+        "not-whitelisted": "Mods non mis à jour : ta whitelist n'est pas validée. Consulte le Discord de The Exiles of Shadowland.",
+        "locked-down": "Mods non mis à jour : l'équipe a temporairement fermé le serveur aux nouvelles connexions. Consulte le Discord de The Exiles of Shadowland.",
+        "launcher-outdated": "Mods non mis à jour : ce launcher n'est plus à jour. Installe la dernière version depuis https://github.com/Tiisma/eos-launcher/releases/latest"
       },
       "ticketFailed": {
         "not-linked": "Jeu non lancé : ce launcher n'est plus lié à Discord. Lie-le à nouveau depuis l'accueil.",
         "not-whitelisted": "Jeu non lancé : ta whitelist n'est pas validée. Consulte le Discord de The Exiles of Shadowland.",
         "unreachable": "Jeu non lancé : le serveur n'a pas répondu. Réessaie dans un instant.",
         "write-failed": "Jeu non lancé : le ticket de connexion n'a pas pu être écrit dans le dossier du jeu. Vérifie que le disque a de la place, puis réessaie.",
-        "refused": "Jeu non lancé : ce dossier de jeu n'est pas géré par ce launcher. Redémarre le launcher, puis réessaie."
+        "refused": "Jeu non lancé : ce dossier de jeu n'est pas géré par ce launcher. Redémarre le launcher, puis réessaie.",
+        "locked-down": "Jeu non lancé : l'équipe a temporairement fermé le serveur aux nouvelles connexions. Consulte le Discord de The Exiles of Shadowland.",
+        "launcher-outdated": "Jeu non lancé : ce launcher n'est plus à jour. Installe la dernière version depuis https://github.com/Tiisma/eos-launcher/releases/latest"
       },
       "players": {
         "loading": "Recherche du serveur…",
@@ -938,7 +942,10 @@
           "unreachable": "Discord non lié : le serveur n'a pas répondu. Réessaie dans un instant.",
           "not-configured": "Discord non lié : le serveur n'a pas encore configuré Discord. Préviens l'équipe du serveur.",
           "expired": "Discord non lié : la liaison a pris trop de temps. Clique sur Lier mon Discord pour recommencer.",
-          "refused": "Discord non lié : Discord n'a pas confirmé la connexion. Clique sur Lier mon Discord pour réessayer."
+          "refused": "Discord non lié : Discord n'a pas confirmé la connexion. Clique sur Lier mon Discord pour réessayer.",
+          "busy": "Discord non lié : trop de tentatives en peu de temps. Attends quelques minutes, puis réessaie.",
+          "locked-down": "Discord non lié : l'équipe a temporairement fermé les nouvelles liaisons. Consulte le Discord de The Exiles of Shadowland.",
+          "launcher-outdated": "Discord non lié : ce launcher n'est plus à jour. Installe la dernière version depuis https://github.com/Tiisma/eos-launcher/releases/latest"
         },
         "membership": {
           "not-whitelisted": "Ta whitelist n'a pas encore été validée. Consulte le Discord de The Exiles of Shadowland.",

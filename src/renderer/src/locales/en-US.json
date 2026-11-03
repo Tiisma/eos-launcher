@@ -878,14 +878,18 @@
         "write-failed": "Mods not updated: the Mods folder could not be written. Check that the game is closed and the disk has room, then try again.",
         "refused": "Mods not updated: an update is already running for this game folder. Wait for it to finish.",
         "not-linked": "Mods not updated: this launcher is no longer linked to Discord. Link it again from the home screen.",
-        "not-whitelisted": "Mods not updated: your whitelist is not validated. Check The Exiles of Shadowland Discord."
+        "not-whitelisted": "Mods not updated: your whitelist is not validated. Check The Exiles of Shadowland Discord.",
+        "locked-down": "Mods not updated: the staff has temporarily closed the server to new connections. Check The Exiles of Shadowland Discord.",
+        "launcher-outdated": "Mods not updated: this launcher is out of date. Install the latest version from https://github.com/Tiisma/eos-launcher/releases/latest"
       },
       "ticketFailed": {
         "not-linked": "Game not started: this launcher is no longer linked to Discord. Link it again from the home screen.",
         "not-whitelisted": "Game not started: your whitelist is not validated. Check The Exiles of Shadowland Discord.",
         "unreachable": "Game not started: the server did not answer. Try again in a moment.",
         "write-failed": "Game not started: the launch ticket could not be written to the game folder. Check that the disk has room, then try again.",
-        "refused": "Game not started: the game folder is not one this launcher manages. Restart the launcher, then try again."
+        "refused": "Game not started: the game folder is not one this launcher manages. Restart the launcher, then try again.",
+        "locked-down": "Game not started: the staff has temporarily closed the server to new connections. Check The Exiles of Shadowland Discord.",
+        "launcher-outdated": "Game not started: this launcher is out of date. Install the latest version from https://github.com/Tiisma/eos-launcher/releases/latest"
       },
       "players": {
         "loading": "Looking for the server…",
@@ -903,7 +907,10 @@
           "unreachable": "Discord not linked: the server did not answer. Try again in a moment.",
           "not-configured": "Discord not linked: the server has not set up Discord yet. Tell the server staff.",
           "expired": "Discord not linked: the link took too long. Click Link my Discord to start again.",
-          "refused": "Discord not linked: Discord did not confirm the connection. Click Link my Discord to try again."
+          "refused": "Discord not linked: Discord did not confirm the connection. Click Link my Discord to try again.",
+          "busy": "Discord not linked: too many attempts in a short time. Wait a few minutes, then try again.",
+          "locked-down": "Discord not linked: the staff has temporarily closed new links. Check The Exiles of Shadowland Discord.",
+          "launcher-outdated": "Discord not linked: this launcher is out of date. Install the latest version from https://github.com/Tiisma/eos-launcher/releases/latest"
         },
         "membership": {
           "not-whitelisted": "Your whitelist has not been validated yet. Check The Exiles of Shadowland Discord.",

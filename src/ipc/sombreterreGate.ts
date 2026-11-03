@@ -1,5 +1,7 @@
 import { app, safeStorage, shell } from "electron"
 import { createHash, randomBytes } from "node:crypto"
+import { createServer } from "node:http"
+import type { AddressInfo } from "node:net"
 import { join } from "node:path"
 import fse from "fs-extra"
 
@@ -15,6 +17,9 @@ const LOG_PREFIX = "[back] [ipc] [ipc/sombreterreGate.ts]"
 const TOKEN_FILE_NAME = "sombreterre-gate.bin"
 /** Read by the SombreterreGate.Client mod (GateClientSystem.TicketFileName) from the Installation's ModConfig. */
 const TICKET_FILE_NAME = "sombreterre-ticket.json"
+
+/** Sent with every request to the gate, which can turn away launchers older than it accepts. */
+const LAUNCHER_VERSION_HEADER = "X-EoS-Launcher-Version"
 
 const LINK_POLL_INTERVAL_MS = 2_000
 const LINK_TIMEOUT_MS = 10 * 60_000
@@ -87,7 +92,7 @@ async function saveGateLink(link: StoredLink | null): Promise<boolean> {
 async function gateRequest(path: string, method: "GET" | "POST", options: { body?: unknown; auth?: boolean } = {}): Promise<unknown> {
   const url = gateUrl(path)
   if (!url) throw new Error("Gate address refused")
-  const headers: Record<string, string> = {}
+  const headers: Record<string, string> = { [LAUNCHER_VERSION_HEADER]: app.getVersion() }
   if (options.auth) {
     const link = await readGateLink()
     if (!link) throw new BoundedResponseError("Not linked", 401, {})
@@ -136,49 +141,116 @@ function toMembership(value: string): SombreterreMembership {
   return value === "whitelisted" || value === "not-whitelisted" || value === "not-member" ? value : "discord-unavailable"
 }
 
+/** Page the browser shows once it has come back to the launcher. */
+const LINKED_PAGE =
+  '<!doctype html><html lang="fr"><meta charset="utf-8"><title>Compte Discord lié</title>' +
+  '<body style="font-family:sans-serif;background:#18181b;color:#e4e4e7;display:grid;place-items:center;height:100vh;margin:0">' +
+  '<div style="text-align:center"><h1>Compte Discord lié</h1><p>Tu peux fermer cet onglet et retourner dans le launcher.</p>' +
+  '<p style="color:#a1a1aa">Discord account linked: you can close this tab and go back to the launcher.</p></div></body></html>'
+
+export interface LoopbackListener {
+  port: number
+  /** Resolves with the handoff code the gate sent the browser back with. */
+  handoff: Promise<string>
+  close: () => void
+}
+
 /**
- * Links this launcher to a Discord account. The browser does the Discord part; the launcher only
- * proves, with a verifier it never sends until the end, that the session is its own.
+ * A one-time listener on this computer's loopback address (RFC 8252). After Discord, the gate sends
+ * the browser here with a handoff code, and only a launcher holding that code can collect the token.
+ * A link someone else was tricked into opening sends their browser to their own computer, never
+ * to the launcher that started it.
+ */
+export function startLoopbackListener(): Promise<LoopbackListener> {
+  return new Promise((resolve, reject) => {
+    let deliver: (handoff: string) => void = () => {}
+    const handoff = new Promise<string>((done) => (deliver = done))
+    const server = createServer((request, response) => {
+      const url = new URL(request.url ?? "/", "http://127.0.0.1")
+      const code = url.searchParams.get("handoff")
+      if (request.method !== "GET" || url.pathname !== "/eos-link" || !code || !/^[A-Za-z0-9_-]{16,128}$/.test(code)) {
+        response.writeHead(404).end()
+        return
+      }
+      response.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" }).end(LINKED_PAGE)
+      deliver(code)
+    })
+    server.on("error", reject)
+    server.listen(0, "127.0.0.1", () => {
+      resolve({ port: (server.address() as AddressInfo).port, handoff, close: () => server.close() })
+    })
+  })
+}
+
+function linkFailureReason(error: unknown): Extract<SombreterreLinkResult, { ok: false }>["reason"] {
+  const status = statusOf(error)
+  if (status === 426) return "launcher-outdated"
+  if (status === 429) return "busy"
+  if (status === 423) return "locked-down"
+  if (status === 503) return "not-configured"
+  return "unreachable"
+}
+
+/**
+ * Links this launcher to a Discord account. The browser does the Discord part. The launcher proves
+ * the session is its own twice: with a verifier it never sends until the end, and with the handoff
+ * code its loopback listener receives from the browser (see {@link startLoopbackListener}).
  */
 export async function linkDiscord(): Promise<SombreterreLinkResult> {
   const verifier = randomBytes(32).toString("base64url")
   const verifierHash = createHash("sha256").update(verifier, "utf8").digest("hex")
 
-  let session: string
-  let url: string
+  let listener: LoopbackListener
   try {
-    const body = await gateRequest("api/link/session", "POST", { body: { verifierHash } })
-    if (!isRecord(body) || typeof body["session"] !== "string" || typeof body["url"] !== "string") return { ok: false, reason: "unreachable" }
-    session = body["session"]
-    url = body["url"]
+    listener = await startLoopbackListener()
   } catch (error) {
-    return { ok: false, reason: statusOf(error) === 503 ? "not-configured" : "unreachable" }
+    logMessage("warn", `${LOG_PREFIX} [linkDiscord] Could not listen on the loopback address: ${getErrorMessage(error)}`)
+    return { ok: false, reason: "unreachable" }
   }
 
-  // Only the gate's own start page is opened, whatever the server answered.
-  const startUrl = allowedSombreterreUrl(url)
-  if (!startUrl || !isGateOrigin(startUrl) || startUrl.pathname !== "/api/link/start") return { ok: false, reason: "unreachable" }
-  await shell.openExternal(startUrl.toString())
-
-  const deadline = Date.now() + LINK_TIMEOUT_MS
-  while (Date.now() < deadline) {
-    await new Promise((resolve) => setTimeout(resolve, LINK_POLL_INTERVAL_MS))
-    let body: unknown
+  try {
+    let session: string
+    let url: string
     try {
-      body = await gateRequest("api/link/poll", "POST", { body: { session, verifier } })
+      const body = await gateRequest("api/link/session", "POST", { body: { verifierHash, loopbackPort: listener.port } })
+      if (!isRecord(body) || typeof body["session"] !== "string" || typeof body["url"] !== "string") return { ok: false, reason: "unreachable" }
+      session = body["session"]
+      url = body["url"]
     } catch (error) {
-      if (statusOf(error) === 404) return { ok: false, reason: "expired" }
-      continue
+      return { ok: false, reason: linkFailureReason(error) }
     }
-    if (!isRecord(body)) continue
-    if (body["status"] === "failed") return { ok: false, reason: "refused" }
-    if (body["status"] === "linked" && typeof body["token"] === "string") {
-      const discordName = typeof body["discordName"] === "string" ? body["discordName"] : ""
-      const stored = await saveGateLink({ token: body["token"], discordName })
-      return { ok: true, discordName, persisted: stored }
+
+    // Only the gate's own start page is opened, whatever the server answered.
+    const startUrl = allowedSombreterreUrl(url)
+    if (!startUrl || !isGateOrigin(startUrl) || startUrl.pathname !== "/api/link/start") return { ok: false, reason: "unreachable" }
+    await shell.openExternal(startUrl.toString())
+
+    let handoff: string | undefined
+    void listener.handoff.then((code) => (handoff = code))
+
+    const deadline = Date.now() + LINK_TIMEOUT_MS
+    while (Date.now() < deadline) {
+      await new Promise((resolve) => setTimeout(resolve, LINK_POLL_INTERVAL_MS))
+      let body: unknown
+      try {
+        body = await gateRequest("api/link/poll", "POST", { body: { session, verifier, ...(handoff ? { handoff } : {}) } })
+      } catch (error) {
+        if (statusOf(error) === 404) return { ok: false, reason: "expired" }
+        if (statusOf(error) === 426) return { ok: false, reason: "launcher-outdated" }
+        continue
+      }
+      if (!isRecord(body)) continue
+      if (body["status"] === "failed") return { ok: false, reason: "refused" }
+      if (body["status"] === "linked" && typeof body["token"] === "string") {
+        const discordName = typeof body["discordName"] === "string" ? body["discordName"] : ""
+        const stored = await saveGateLink({ token: body["token"], discordName })
+        return { ok: true, discordName, persisted: stored }
+      }
     }
+    return { ok: false, reason: "expired" }
+  } finally {
+    listener.close()
   }
-  return { ok: false, reason: "expired" }
 }
 
 export async function unlinkDiscord(): Promise<void> {
@@ -190,10 +262,10 @@ export async function unlinkDiscord(): Promise<void> {
   await saveGateLink(null)
 }
 
-/** The launcher token, for a request to the gate's own origin. */
-export async function gateAuthorizationHeader(): Promise<Record<string, string>> {
+/** Headers for a request to the gate's own origin: the launcher version and, once linked, the token. */
+export async function gateRequestHeaders(): Promise<Record<string, string>> {
   const link = await readGateLink()
-  return link ? { Authorization: `Bearer ${link.token}` } : {}
+  return { [LAUNCHER_VERSION_HEADER]: app.getVersion(), ...(link ? { Authorization: `Bearer ${link.token}` } : {}) }
 }
 
 /**
@@ -210,6 +282,8 @@ export async function prepareLaunchTicket(installationPath: string): Promise<Som
     const status = statusOf(error)
     if (status === 401) return { ok: false, reason: "not-linked" }
     if (status === 403) return { ok: false, reason: "not-whitelisted" }
+    if (status === 423) return { ok: false, reason: "locked-down" }
+    if (status === 426) return { ok: false, reason: "launcher-outdated" }
     return { ok: false, reason: "unreachable" }
   }
 

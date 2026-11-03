@@ -1020,6 +1020,8 @@ declare global {
     | "refused"
     | "not-linked"
     | "not-whitelisted"
+    | "locked-down"
+    | "launcher-outdated"
 
   type PackSyncFailure = { ok: false; reason: PackSyncFailureReason; modid?: string }
 
@@ -1033,9 +1035,11 @@ declare global {
 
   type SombreterreAccountState = { linked: false } | { linked: true; discordName: string; membership: SombreterreMembership }
 
-  type SombreterreLinkResult = { ok: true; discordName: string; persisted: boolean } | { ok: false; reason: "unreachable" | "not-configured" | "expired" | "refused" }
+  type SombreterreLinkResult =
+    | { ok: true; discordName: string; persisted: boolean }
+    | { ok: false; reason: "unreachable" | "not-configured" | "expired" | "refused" | "busy" | "locked-down" | "launcher-outdated" }
 
-  type SombreterreTicketResult = { ok: true } | { ok: false; reason: "not-linked" | "not-whitelisted" | "unreachable" | "write-failed" | "refused" }
+  type SombreterreTicketResult = { ok: true } | { ok: false; reason: "not-linked" | "not-whitelisted" | "locked-down" | "launcher-outdated" | "unreachable" | "write-failed" | "refused" }
 
   declare module "*.png" {
     const value: string

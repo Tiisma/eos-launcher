@@ -115,6 +115,16 @@ describe("addresses", () => {
     assert.equal(resolveModDbRelease(releases, { source: "moddb", modid: "a", version: "2.0.0" }), undefined)
   })
 
+  it("carries a pinned ModDB hash through to the download, and refuses a malformed one", () => {
+    const pinned = parsePackManifest(manifest([{ source: "moddb", modid: "a", version: "1.0.1", sha256: SHA.toUpperCase() }]))
+    assert.ok(pinned.ok)
+    const entry = pinned.manifest.mods[0]
+    assert.ok(entry?.source === "moddb")
+    const releases = [{ modversion: "1.0.1", mainfile: "https://moddbcdn.vintagestory.at/a.zip", filename: "a-1.0.1.zip" }]
+    assert.equal(resolveModDbRelease(releases, entry)?.sha256, SHA)
+    assert.equal(parsePackManifest(manifest([{ source: "moddb", modid: "a", version: "1.0.1", sha256: "xyz" }])).ok, false)
+  })
+
   it("accepts plain zip names only", () => {
     assert.equal(isSafePackFileName("carryon_1.10.4.zip"), true)
     assert.equal(isSafePackFileName("a|b.zip"), false)

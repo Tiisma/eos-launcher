@@ -8,7 +8,7 @@ import type { PackEntry, ResolvedPackFile } from "@domain/sombreterre/pack"
 import { SOMBRETERRE_PROFILE } from "@domain/sombreterre/profile"
 import { writeJsonAtomic } from "@src/ipc/atomicJsonFile"
 import { BoundedResponseError, requestBoundedBuffer, requestBoundedText } from "@src/ipc/network"
-import { allowedSombreterreUrl, gateAuthorizationHeader, isGateOrigin } from "@src/ipc/sombreterreGate"
+import { allowedSombreterreUrl, gateRequestHeaders, isGateOrigin } from "@src/ipc/sombreterreGate"
 import { MODS_API_TIMEOUT_MS } from "@src/ipc/validation"
 import { getErrorMessage, logMessage } from "@src/utils/logManager"
 
@@ -29,9 +29,9 @@ function packManifestUrl(): URL | undefined {
   return allowedSombreterreUrl(SOMBRETERRE_PROFILE.packManifestUrl)
 }
 
-/** The launcher token goes to the gate's own origin and nowhere else (ModDB never sees it). */
+/** The launcher token and version go to the gate's own origin and nowhere else (ModDB never sees them). */
 async function headersFor(url: URL): Promise<Record<string, string>> {
-  return isGateOrigin(url) ? gateAuthorizationHeader() : {}
+  return isGateOrigin(url) ? gateRequestHeaders() : {}
 }
 
 async function resolveEntry(entry: PackEntry, manifestUrl: URL): Promise<ResolvedPackFile | PackSyncFailure> {
@@ -110,6 +110,8 @@ export async function syncSombreterrePack(installationPath: string, onProgress: 
     const status = error instanceof BoundedResponseError ? error.statusCode : undefined
     if (status === 401) return { ok: false, reason: "not-linked" }
     if (status === 403) return { ok: false, reason: "not-whitelisted" }
+    if (status === 423) return { ok: false, reason: "locked-down" }
+    if (status === 426) return { ok: false, reason: "launcher-outdated" }
     logMessage("warn", `${LOG_PREFIX} [syncSombreterrePack] Pack manifest unreachable: ${getErrorMessage(error)}`)
     return { ok: false, reason: "pack-unreachable" }
   }

@@ -40,6 +40,12 @@ export interface ModDbPackEntry {
   source: "moddb"
   modid: string
   version: string
+  /**
+   * Lowercase hex SHA-256 of the archive the server runs, when the server pins it. The ModDB file
+   * must then match it byte for byte, so a file replaced on the ModDB under the same version, or
+   * swapped on the way, is refused.
+   */
+  sha256?: string
 }
 
 export interface PrivatePackEntry {
@@ -89,7 +95,12 @@ function readEntry(value: unknown): PackEntry | undefined {
   if (typeof modid !== "string" || !MODID_PATTERN.test(modid)) return undefined
   if (typeof version !== "string" || !VERSION_PATTERN.test(version)) return undefined
 
-  if (source === "moddb") return { source, modid, version }
+  if (source === "moddb") {
+    const { sha256 } = value
+    if (sha256 === undefined) return { source, modid, version }
+    if (typeof sha256 !== "string" || !SHA256_PATTERN.test(sha256.toLowerCase())) return undefined
+    return { source, modid, version, sha256: sha256.toLowerCase() }
+  }
 
   if (source === "private") {
     const { file, sha256 } = value
@@ -265,7 +276,7 @@ export function resolveModDbRelease(releases: readonly Record<string, unknown>[]
   try {
     const url = new URL(mainfile)
     if (url.protocol !== "https:" || !MODDB_FILE_HOSTS.has(url.hostname.toLowerCase())) return undefined
-    return { modid: entry.modid, version: entry.version, source: "moddb", fileName: filename, url: url.toString() }
+    return { modid: entry.modid, version: entry.version, source: "moddb", fileName: filename, url: url.toString(), ...(entry.sha256 ? { sha256: entry.sha256 } : {}) }
   } catch {
     return undefined
   }
