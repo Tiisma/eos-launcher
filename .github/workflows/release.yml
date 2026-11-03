@@ -1,42 +1,28 @@
 name: Release
 
-# Builds and uploads installers when a version tag is pushed. electron-builder
-# publishes both platforms onto a single DRAFT GitHub release for the tag, so
-# nothing goes public until a human reviews the draft and publishes it (marked
-# as a prerelease for -beta/-rc tags). The auto-updater feed files
-# (latest.yml, latest-linux.yml) are uploaded alongside the installers, which
-# is what lets installed copies discover the next release.
+# Builds the Windows installer when a version tag (v*) is pushed and attaches it,
+# with its SHA-256, to a DRAFT GitHub release for that tag. Nothing is visible to
+# anyone else until the release is reviewed and published by hand.
 #
-# Linux builds AppImage, deb, rpm and pacman. rpm needs rpmbuild (the `rpm`
-# apt package) and pacman needs bsdtar (the `libarchive-tools` apt package);
-# neither ships on ubuntu-latest by default. macOS is absent for the same reason it is manual-only in ci.yml:
-# 10x billing and the launcher cannot launch the game there yet.
+# There is no update feed: electron-builder's publish is off (electron-builder.yml)
+# and the in-app updater is disabled by the profile, so players update by
+# installing the new version.
 on:
   push:
     tags:
       - "v*"
-  # Lets the checksum and scan job be re-run alone against a release that
-  # already exists, without rebuilding or re-uploading anything.
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: "Tag of an existing release to append checksums and scans to"
-        required: true
-        type: string
 
 jobs:
-  build-and-draft:
-    if: github.event_name == 'push'
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
+  windows-installer:
+    runs-on: windows-latest
     permissions:
       contents: write
     env:
       CSC_IDENTITY_AUTO_DISCOVERY: false
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # Passed through the environment rather than interpolated into the scripts,
+      # so a tag name is only ever expanded, never parsed as shell code.
+      RELEASE_TAG: ${{ github.ref_name }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -45,39 +31,14 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
-      - if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y rpm libarchive-tools
-      - if: runner.os == 'Linux'
-        run: npx electron-builder --linux AppImage deb rpm pacman --publish always
-      - if: runner.os == 'Windows'
-        run: npx electron-builder --win --x64 --publish always
-
-  checksums-and-scans:
-    # Runs after the draft exists and holds every asset, and can also be
-    # dispatched on its own against a release that is already published.
-    needs: build-and-draft
-    if: ${{ always() && (github.event_name == 'workflow_dispatch' || needs.build-and-draft.result == 'success') }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
-    # Uploading and scanning five 100 MB installers on the free quota is slow
-    # by design (4 requests per minute), so give the job room to finish.
-    timeout-minutes: 90
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      # No npm ci: the script only uses Node built-ins and the gh CLI.
-      # The tag is passed through the step environment rather than interpolated
-      # into the run script: a `${{ }}` expression is substituted into the shell
-      # source before bash ever runs, so a tag carrying shell metacharacters
-      # would execute on the runner (contents: write, VirusTotal key) instead of
-      # reaching Node as an argument. $RELEASE_TAG in double quotes is a plain
-      # variable expansion, not re-parsed for substitutions.
-      - env:
-          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
-        run: node scripts/release-checksums.js "$RELEASE_TAG"
+      - run: npx electron-builder --win nsis --x64 --publish never
+      - shell: bash
+        run: |
+          cd dist
+          shopt -s nullglob
+          installers=(*-setup.exe)
+          if [ ${#installers[@]} -eq 0 ]; then echo "No installer was built" >&2; exit 1; fi
+          sha256sum "${installers[@]}" > SHA256SUMS.txt
+          prerelease=""
+          case "$RELEASE_TAG" in *-*) prerelease="--prerelease" ;; esac
+          gh release create "$RELEASE_TAG" "${installers[@]}" SHA256SUMS.txt --draft $prerelease --title "The Exiles of Shadowland - Launcher $RELEASE_TAG" --notes "Windows installer and its SHA-256."

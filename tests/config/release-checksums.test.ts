@@ -124,43 +124,31 @@ describe("VirusTotal limits", () => {
 describe("release workflow", () => {
   const workflow = readFileSync(resolve(repoRoot, ".github/workflows/release.yml"), "utf8")
 
-  it("can be dispatched against an existing tag", () => {
-    assert.match(workflow, /^ {2}workflow_dispatch:$/m)
-    assert.match(workflow, /^ {6}tag:$/m)
+  it("builds on a version tag push only and leaves a draft", () => {
+    assert.match(workflow, /^ {4}tags:\n {6}- "v\*"$/m)
+    assert.doesNotMatch(workflow, /workflow_dispatch/)
+    assert.match(workflow, /gh release create "\$RELEASE_TAG" .*--draft/)
+    assert.match(workflow, /--publish never/)
   })
 
-  it("builds on a tag push only and always runs the scan job", () => {
-    assert.match(workflow, /^ {2}build-and-draft:\n {4}if: github\.event_name == 'push'$/m)
-    assert.match(workflow, /^ {2}checksums-and-scans:$/m)
-    assert.match(workflow, /needs: build-and-draft/)
-    assert.match(workflow, /always\(\) && \(github\.event_name == 'workflow_dispatch' \|\| needs\.build-and-draft\.result == 'success'\)/)
-  })
-
-  it("calls the script with the dispatched tag or the pushed one", () => {
-    assert.match(workflow, /VIRUSTOTAL_API_KEY: \$\{\{ secrets\.VIRUSTOTAL_API_KEY \}\}/)
-  })
-
-  it("passes the tag through the step environment instead of interpolating it into the shell", () => {
-    // A `${{ }}` expression is substituted into the run script's text before
-    // bash parses it, so it must never sit inside the run: line itself; it
-    // has to arrive as an already-set environment variable that the shell
-    // only expands, never re-parses.
-    assert.match(workflow, /RELEASE_TAG: \$\{\{ inputs\.tag \|\| github\.ref_name \}\}/)
-    assert.match(workflow, /run: node scripts\/release-checksums\.js "\$RELEASE_TAG"/)
-    assert.doesNotMatch(workflow, /run:.*\$\{\{.*\}\}/)
+  it("passes the tag through the environment instead of interpolating it into the shell", () => {
+    // A `${{ }}` expression is substituted into the run script text before
+    // bash parses it, so the only lines allowed to carry one are plain
+    // `KEY: ${{ ... }}` settings, never a line of a run script.
+    assert.match(workflow, /RELEASE_TAG: \$\{\{ github\.ref_name \}\}/)
+    const expressionLines = workflow.split("\n").filter((line) => line.includes("${{"))
+    for (const line of expressionLines) assert.match(line, /^\s*[A-Za-z_]+: \$\{\{ [^}]+ \}\}$/, line)
   })
 
   // The regexes above pin the lines that matter but would happily pass on a
-  // file GitHub refuses to parse. js-yaml is only a transitive dependency of
-  // electron-updater here (see electron-builder-icon-files.test.ts), so the
-  // actual parse borrows PyYAML when the machine has it and is skipped when
-  // it does not; CI runners do.
+  // file GitHub refuses to parse. The parse borrows PyYAML when the machine
+  // has it and is skipped when it does not; CI runners do.
   const hasPyYaml = spawnSync("python3", ["-c", "import yaml"]).status === 0
 
-  it.skipIf(!hasPyYaml)("parses as YAML with both jobs", () => {
+  it.skipIf(!hasPyYaml)("parses as YAML with its one job", () => {
     const parsed = spawnSync("python3", ["-c", "import sys,yaml;print(sorted(yaml.safe_load(open(sys.argv[1]))['jobs']))", resolve(repoRoot, ".github/workflows/release.yml")], { encoding: "utf8" })
 
     assert.equal(parsed.status, 0, parsed.stderr)
-    assert.equal(parsed.stdout.trim(), "['build-and-draft', 'checksums-and-scans']")
+    assert.equal(parsed.stdout.trim(), "['windows-installer']")
   })
 })

@@ -1,19 +1,24 @@
 name: CI
 
+# Kept small on purpose: this is a private repository, so every minute counts
+# against the account's Actions quota (Windows minutes count double). Tests run
+# once on Linux; Windows only builds the unpacked app, which is what players get.
 on:
   pull_request:
   push:
     branches:
       - main
-      - dev
+      - eos-launcher
   workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   # typecheck and lint run tsc, eslint and prettier. None of them launches
   # Electron, so neither job needs the platform binary that `npm ci`'s
-  # postinstall would otherwise fetch from the download mirror. Skipping it
-  # means a mirror hiccup can no longer fail a job whose only work is static
-  # analysis (issue #377). The test-matrix and build jobs keep the download.
+  # postinstall would otherwise fetch from the download mirror.
   typecheck:
     runs-on: ubuntu-latest
     env:
@@ -41,99 +46,19 @@ jobs:
       - run: npm run lint:ci
       - run: npm run format:check
 
-  test-matrix:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-        # 22 is the baseline CONTRIBUTING.md asks contributors for. 26 is here
-        # because Node 26 ships a global localStorage that stays
-        # undefined without --localstorage-file, which used to take the whole
-        # renderer-dom project down before any test body ran, and because
-        # tlsConnect refuses an IP literal as servername. Both are fixed now,
-        # and neither can be caught by a 22-only run.
-        node: ["22", "26"]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node }}
-          cache: npm
-      - run: npm ci
-      - run: npm run test:coverage
-      # sonarcloud reads this instead of regenerating the same coverage a
-      # few minutes later: one leg's report is enough for one Sonar scan,
-      # and ubuntu-latest is picked because sonarcloud itself runs on it.
-      # The node leg is pinned as well: with a second version in the matrix
-      # two ubuntu legs would upload the same artifact name, and
-      # upload-artifact@v4 rejects that. 22 is the leg the reported coverage
-      # has always come from, so Sonar's numbers stay comparable to history.
-      - if: matrix.os == 'ubuntu-latest' && matrix.node == '22'
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report
-          path: coverage/lcov.info
-          retention-days: 1
-
-  # `dev` branch protection requires a context literally named `test`, and a
-  # matrixed job can't produce one: it reports `test (ubuntu-latest)` and
-  # `test (windows-latest)` instead. This job keeps the required name alive.
-  # `always()` makes it run even when a leg fails (without it the gate would be
-  # skipped, and protection counts a skipped required job as satisfied), and
-  # the explicit comparison fails the gate unless every leg succeeded, so a
-  # failed, cancelled or skipped matrix turns it red.
   test:
-    needs: [test-matrix]
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-      - run: |
-          echo "test-matrix result: ${{ needs.test-matrix.result }}"
-          [ "${{ needs.test-matrix.result }}" = "success" ]
-
-  # Informational quality scan: never blocks a merge, so a SonarCloud outage
-  # or configuration change can't turn the whole run red.
-  # Dependabot events carry no secrets so the scan cannot authenticate.
-  #
-  # needs test-matrix rather than running in parallel with it: the coverage
-  # this reads comes from that job's ubuntu-latest leg (uploaded above), on
-  # this same commit, so there is nothing to scan with until it has actually
-  # produced one. A failed test-matrix leaves no artifact to download, and
-  # continue-on-error below is what keeps that from failing the run.
-  # always() is required here: a plain `if:` combined with `needs` defaults
-  # to success() (same rule the `test` job's comment above documents), so
-  # without it a single red or cancelled test-matrix leg (e.g. a
-  # Windows-only flake) would SKIP this job outright instead of letting it
-  # attempt the download and fail gracefully via continue-on-error.
-  sonarcloud:
-    needs: [test-matrix]
-    if: always() && (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository) && (github.event_name != 'pull_request' || github.event.pull_request.user.login != 'dependabot[bot]')
-    continue-on-error: true
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
       - run: npm ci
-      - uses: actions/download-artifact@v4
-        with:
-          name: coverage-report
-          path: coverage
-      - uses: SonarSource/sonarqube-scan-action@v8
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - run: npm test
 
   build:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
+    runs-on: windows-latest
     env:
       CSC_IDENTITY_AUTO_DISCOVERY: false
     steps:
@@ -143,30 +68,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      # npm run build:unpack is `npm run build && electron-builder --dir`,
-      # and build is `npm run typecheck && electron-vite build`: run as an
-      # npm script here, that re-runs the full typecheck the dedicated
-      # typecheck job already ran on its own. Calling electron-vite and
-      # electron-builder directly skips the repeat; npm run build:unpack
-      # itself is untouched for a local build outside CI.
+      # Calls electron-vite and electron-builder directly: `npm run build`
+      # would repeat the typecheck the job above already ran.
       - shell: bash
-        run: ./node_modules/.bin/electron-vite build && ./node_modules/.bin/electron-builder --dir
-
-  # macos-latest bills Actions minutes at a 10x multiplier and the launcher
-  # can't launch the game on macOS yet, so this build is manual-only.
-  build-macos:
-    if: github.event_name == 'workflow_dispatch'
-    strategy:
-      matrix:
-        os: [macos-latest]
-    runs-on: ${{ matrix.os }}
-    env:
-      CSC_IDENTITY_AUTO_DISCOVERY: false
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npm run build:unpack
+        run: ./node_modules/.bin/electron-vite build && ./node_modules/.bin/electron-builder --win --x64 --dir
