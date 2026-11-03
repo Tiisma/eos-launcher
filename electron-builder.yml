@@ -47,6 +47,9 @@ files:
   # measure-windows-runtime.ps1) that are never imported from out/. Shipping
   # them adds dead weight to the asar.
   - "!scripts{,/**/*}"
+  # Local build outputs and the pack served by `npm run pack:serve` never belong in the app.
+  - "!dist{,-*}{,/**/*}"
+  - "!pack{,/**/*}"
 # Chromium ships 55 locale .pak files (~47 MB) and this app can use exactly one.
 # The 14 UI languages are React + i18next JSON inside the asar
 # (src/renderer/src/locales); these .pak files only feed Chromium's own native
