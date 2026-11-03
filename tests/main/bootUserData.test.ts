@@ -123,7 +123,7 @@ describe("the boot module wires the profile into a running app", () => {
       await boot()
 
       assert.equal(vi.mocked(readLinuxPackageType).mock.calls.length, 1)
-      assert.deepEqual(vi.mocked(selectUserDataFolder).mock.calls, [[appDataPath, null]])
+      assert.deepEqual(vi.mocked(selectUserDataFolder).mock.calls, [[appDataPath, null, { importLegacy: false }]])
     } finally {
       if (previousAppImage === undefined) delete process.env.APPIMAGE
       else process.env.APPIMAGE = previousAppImage
