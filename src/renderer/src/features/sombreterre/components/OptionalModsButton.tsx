@@ -18,7 +18,7 @@ function OptionalModsButton({ disabled }: { disabled: boolean }): JSX.Element | 
     void window.api.sombreterre.optionalMods().then((list) => {
       if (current) setMods(list)
     })
-    return () => {
+    return (): void => {
       current = false
     }
   }, [])
