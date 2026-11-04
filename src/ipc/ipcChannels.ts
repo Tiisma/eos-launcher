@@ -93,7 +93,9 @@ export const IPC_CHANNELS = {
     ACCOUNT_STATE: "sombreterre-account-state",
     LINK_DISCORD: "sombreterre-link-discord",
     UNLINK_DISCORD: "sombreterre-unlink-discord",
-    PREPARE_LAUNCH: "sombreterre-prepare-launch"
+    PREPARE_LAUNCH: "sombreterre-prepare-launch",
+    OPTIONAL_MODS: "sombreterre-optional-mods",
+    CHOOSE_OPTIONAL_MOD: "sombreterre-choose-optional-mod"
   },
   WORLDS_MANAGER: {
     LIST: "worlds-list",

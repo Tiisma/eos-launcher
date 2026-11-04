@@ -917,6 +917,11 @@
         "locked-down": "Mods non mis à jour : l'équipe a temporairement fermé le serveur aux nouvelles connexions. Consulte le Discord de The Exiles of Shadowland.",
         "launcher-outdated": "Mods non mis à jour : ce launcher n'est plus à jour. Installe la dernière version depuis https://github.com/Tiisma/eos-launcher/releases/latest"
       },
+      "optionalMods": {
+        "title": "Mods optionnels",
+        "why": "Le serveur autorise ces mods et aucun autre. Ton choix s'applique la prochaine fois que tu appuies sur Jouer.",
+        "close": "Fermer"
+      },
       "ticketFailed": {
         "not-linked": "Jeu non lancé : ce launcher n'est plus lié à Discord. Lie-le à nouveau depuis l'accueil.",
         "no-game-account": "Jeu non lancé : aucun compte Vintage Story n'est connecté. Connecte-toi avec le bouton du compte, puis appuie à nouveau sur Jouer.",

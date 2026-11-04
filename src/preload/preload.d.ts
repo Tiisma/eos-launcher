@@ -103,6 +103,8 @@ declare global {
       unlinkDiscord: () => Promise<void>
       /** Fetches a launch ticket and writes it into the Installation for the client gate mod. */
       prepareLaunch: (installationPath: string) => Promise<SombreterreTicketResult>
+      optionalMods: () => Promise<SombreterreOptionalMod[]>
+      chooseOptionalMod: (modid: string, chosen: boolean) => Promise<void>
     }
     optimumManager: {
       /** Optimum's published overlay for this machine, or the one reason no Optimum is offered this session. Never rejects. */

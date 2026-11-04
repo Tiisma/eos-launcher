@@ -20,10 +20,9 @@
  * another host or climb out of the manifest's folder, and its digest is mandatory because nothing
  * else vouches for what that host serves.
  *
- * The launcher only ever touches files it put there itself. What it installed is recorded in a
- * state file beside the Mods folder; a Mod the player dropped in by hand is left alone, which also
- * means a hand-placed copy of a pack Mod under another file name stays a duplicate the game will
- * complain about. That is the player's to remove.
+ * What the launcher installed is recorded in a state file beside the Mods folder. The server decides
+ * what its players run: the pack, plus the optional Mods a player chose among those it offers.
+ * Anything else found in Mods is moved aside by {@link foreignModNames} rather than deleted.
  */
 
 import { isRecord } from "../records"
@@ -60,11 +59,15 @@ export interface PrivatePackEntry {
 
 export type PackEntry = ModDbPackEntry | PrivatePackEntry
 
+/** A Mod a player may choose to add, with what they read before choosing. */
+export type OptionalPackEntry = PackEntry & { name: string; description: string }
+
 export interface PackManifest {
   format: typeof PACK_FORMAT
   name: string
   gameVersion: string
   mods: PackEntry[]
+  optional: OptionalPackEntry[]
 }
 
 export type ParsePackManifestFailure = "not-json" | "unsupported-format" | "bad-header" | "bad-entry" | "too-many-entries" | "duplicate-modid"
@@ -112,9 +115,24 @@ function readEntry(value: unknown): PackEntry | undefined {
   return undefined
 }
 
+function readOptionalEntries(value: unknown, taken: Set<string>): OptionalPackEntry[] {
+  if (!Array.isArray(value)) return []
+  const entries: OptionalPackEntry[] = []
+  for (const row of value.slice(0, MAX_PACK_ENTRIES)) {
+    const entry = readEntry(row)
+    if (!entry || !isRecord(row) || taken.has(entry.modid.toLowerCase())) continue
+    taken.add(entry.modid.toLowerCase())
+    const name = typeof row["name"] === "string" && row["name"].length > 0 ? row["name"].slice(0, 128) : entry.modid
+    const description = typeof row["description"] === "string" ? row["description"].slice(0, 1024) : ""
+    entries.push({ ...entry, name, description })
+  }
+  return entries
+}
+
 /**
  * Reads a manifest, all or nothing. Unlike the game catalog, a pack with one bad row is refused
  * whole: a server that requires a Mod the launcher skipped would only fail later, at connection.
+ * Optional Mods are not required of anyone, so an unreadable one is simply not offered.
  */
 export function parsePackManifest(text: string): ParsePackManifestResult {
   let raw: unknown
@@ -144,7 +162,7 @@ export function parsePackManifest(text: string): ParsePackManifestResult {
     entries.push(entry)
   }
 
-  return { ok: true, manifest: { format: PACK_FORMAT, name, gameVersion, mods: entries } }
+  return { ok: true, manifest: { format: PACK_FORMAT, name, gameVersion, mods: entries, optional: readOptionalEntries(raw["optional"], seen) } }
 }
 
 /** One archive the Installation should hold, once every entry has been resolved to a download. */
@@ -244,6 +262,12 @@ export function planPackSync(wanted: readonly ResolvedPackFile[], state: PackSta
   const remove = state.files.filter((file) => !wantedNames.has(file.fileName.toLowerCase()) && present.has(file.fileName.toLowerCase())).map((file) => file.fileName)
 
   return { download, remove, keep }
+}
+
+/** The names in Mods that are neither in the pack nor optional Mods this player chose. */
+export function foreignModNames(wanted: readonly ResolvedPackFile[], presentNames: readonly string[]): string[] {
+  const keep = new Set(wanted.map((file) => file.fileName.toLowerCase()))
+  return presentNames.filter((name) => !keep.has(name.toLowerCase()))
 }
 
 /** The state file a finished sync writes: exactly the archives the pack wants. */

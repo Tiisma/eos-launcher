@@ -3,7 +3,7 @@ import { ipcMain } from "electron"
 import { IPC_CHANNELS } from "@src/ipc/ipcChannels"
 import { assertTrustedIpcSender } from "@src/ipc/ipcSecurity"
 import { assertConfiguredInstallationPath } from "@src/ipc/pathPolicy"
-import { syncSombreterrePack } from "@src/ipc/sombreterrePack"
+import { chooseOptionalMod, listOptionalMods, syncSombreterrePack } from "@src/ipc/sombreterrePack"
 import { getGateAccount, getGateStatus, linkDiscord, prepareLaunchTicket, unlinkDiscord } from "@src/ipc/sombreterreGate"
 import { getErrorMessage, logMessage } from "@src/utils/logManager"
 
@@ -65,6 +65,17 @@ ipcMain.handle(IPC_CHANNELS.SOMBRETERRE.LINK_DISCORD, async (event): Promise<Som
 ipcMain.handle(IPC_CHANNELS.SOMBRETERRE.UNLINK_DISCORD, async (event): Promise<void> => {
   assertTrustedIpcSender(event)
   await unlinkDiscord()
+})
+
+ipcMain.handle(IPC_CHANNELS.SOMBRETERRE.OPTIONAL_MODS, async (event): Promise<SombreterreOptionalMod[]> => {
+  assertTrustedIpcSender(event)
+  return listOptionalMods()
+})
+
+ipcMain.handle(IPC_CHANNELS.SOMBRETERRE.CHOOSE_OPTIONAL_MOD, async (event, modid: unknown, chosen: unknown): Promise<void> => {
+  assertTrustedIpcSender(event)
+  if (typeof modid !== "string" || !/^[a-z0-9_-]{1,64}$/i.test(modid) || typeof chosen !== "boolean") throw new TypeError("Invalid optional mod choice")
+  await chooseOptionalMod(modid, chosen)
 })
 
 ipcMain.handle(IPC_CHANNELS.SOMBRETERRE.PREPARE_LAUNCH, async (event, installationPath: unknown): Promise<SombreterreTicketResult> => {

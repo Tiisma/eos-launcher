@@ -9,6 +9,7 @@ import { logMessage, getErrorMessage } from "@src/utils/logManager"
 import { writeJsonAtomic } from "@src/ipc/atomicJsonFile"
 import { IPC_CHANNELS } from "@src/ipc/ipcChannels"
 import { assertTrustedIpcSender } from "@src/ipc/ipcSecurity"
+import { TICKET_FILE_NAME, keepLaunchTicketFresh } from "@src/ipc/sombreterreGate"
 import { startupHookEnvironment } from "@src/ipc/sombreterreStartupHook"
 import { assertConfiguredInstallationPath, assertManagedPath } from "@src/ipc/pathPolicy"
 import { assertString, comparablePath, parseSafeEnvironment, toWireBuildVariant, validateGameInstallation, validateGameVersion } from "@src/ipc/validation"
@@ -528,6 +529,9 @@ ipcMain.handle(IPC_CHANNELS.GAME_MANAGER.EXECUTE_GAME, async (event, version: un
   const samplerOptions = platform === "win32" ? { processProbe: tasklistProbe() } : {}
   const recorder = config.measurePlaySessions && installationId ? createPlaySessionRecorder(createProcessSampler(platform, samplerOptions)) : undefined
 
+  // A launch through the Play button has just written a ticket; the server's menu may need a later one.
+  const stopTicketRenewal = (await fse.pathExists(join(safeInstallation.path, "ModConfig", TICKET_FILE_NAME))) ? keepLaunchTicketFresh(safeInstallation.path) : undefined
+
   let outcome: GameProcessOutcome
   let session: PlaySession | undefined
   try {
@@ -543,6 +547,7 @@ ipcMain.handle(IPC_CHANNELS.GAME_MANAGER.EXECUTE_GAME, async (event, version: un
     // went, so the timer cannot outlive this handler.
     session = await recorder?.finish()
   } finally {
+    stopTicketRenewal?.()
     if (installationId) clearInstallationPlaying(installationId)
   }
   if (account && handedSession && outcome.started) await adoptSessionSavedDuringPlay(account.playerUid, handedSession)

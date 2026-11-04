@@ -11,6 +11,7 @@ import { useSombreterreGate } from "@renderer/features/sombreterre/hooks/useSomb
 import { useSombreterrePlay } from "@renderer/features/sombreterre/hooks/useSombreterrePlay"
 import { useLauncherUpdate } from "@renderer/features/sombreterre/hooks/useLauncherUpdate"
 import LauncherUpdateBanner from "@renderer/features/sombreterre/components/LauncherUpdateBanner"
+import OptionalModsButton from "@renderer/features/sombreterre/components/OptionalModsButton"
 import type { SombreterrePhase } from "@renderer/features/sombreterre/hooks/useSombreterrePlay"
 
 const PHASE_KEYS: Record<Exclude<SombreterrePhase, "idle">, string> = {
@@ -69,6 +70,7 @@ function SombreterreHome(): JSX.Element {
               <span className="text-sm">{gate.account.discordName}</span>
             </NormalButton>
           )}
+          {linked && <OptionalModsButton disabled={busy} />}
           <LinkButton to="/config" title={t("components.mainMenu.configTitle")} size="md" icon={<PiGearDuotone />} />
         </div>
       </div>

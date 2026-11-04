@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
 import { describe, it } from "vitest"
 
-import { installedModDbFile, isSafePackFileName, packStateFor, parsePackManifest, parsePackState, planPackSync, privateFileUrl, resolveModDbRelease } from "@domain/sombreterre/pack"
+import { foreignModNames, installedModDbFile, isSafePackFileName, packStateFor, parsePackManifest, parsePackState, planPackSync, privateFileUrl, resolveModDbRelease } from "@domain/sombreterre/pack"
 import type { PackState, ResolvedPackFile } from "@domain/sombreterre/pack"
 
 const SHA = "ab".repeat(32)
@@ -58,6 +58,42 @@ describe("parsePackManifest", () => {
     )
     assert.deepEqual(parsePackManifest(manifest([], { format: 2 })), { ok: false, reason: "unsupported-format" })
     assert.deepEqual(parsePackManifest("{"), { ok: false, reason: "not-json" })
+  })
+})
+
+describe("optional mods", () => {
+  const manifest = (optional: unknown): string => JSON.stringify({ format: 1, name: "p", gameVersion: "1.22.7", mods: [{ source: "moddb", modid: "core", version: "1.0.0" }], optional })
+
+  it("offers readable entries, and passes over the rest without refusing the pack", () => {
+    const parsed = parsePackManifest(
+      manifest([
+        { source: "moddb", modid: "shaders", version: "2.0.0", name: "Nice shaders", description: "Pretty light" },
+        { source: "moddb", modid: "core", version: "1.0.0" },
+        { source: "nowhere", modid: "bad", version: "1.0.0" },
+        { source: "moddb", modid: "unnamed", version: "1.0.0" }
+      ])
+    )
+    assert.equal(parsed.ok, true)
+    if (!parsed.ok) return
+    assert.deepEqual(
+      parsed.manifest.optional.map(({ modid, name, description }) => [modid, name, description]),
+      [
+        ["shaders", "Nice shaders", "Pretty light"],
+        ["unnamed", "unnamed", ""]
+      ]
+    )
+  })
+
+  it("reads a manifest from a server that offers none", () => {
+    const parsed = parsePackManifest(manifest(undefined))
+    assert.deepEqual(parsed.ok && parsed.manifest.optional, [])
+  })
+})
+
+describe("foreignModNames", () => {
+  it("names what is neither in the pack nor chosen, whatever the case of the file name", () => {
+    const wanted = [{ modid: "core", version: "1.0.0", source: "moddb" as const, fileName: "Core-1.0.0.zip", url: "" }]
+    assert.deepEqual(foreignModNames(wanted, ["core-1.0.0.ZIP", "cheat.zip", "folder"]), ["cheat.zip", "folder"])
   })
 })
 

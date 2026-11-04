@@ -1035,6 +1035,9 @@ declare global {
 
   type SombreterreAccountState = { linked: false } | { linked: true; discordName: string; membership: SombreterreMembership }
 
+  /** A Mod the server offers players to add, and whether this player chose it. */
+  type SombreterreOptionalMod = { modid: string; version: string; name: string; description: string; chosen: boolean }
+
   type SombreterreLinkResult =
     | { ok: true; discordName: string; persisted: boolean }
     | { ok: false; reason: "unreachable" | "not-configured" | "expired" | "refused" | "busy" | "locked-down" | "launcher-outdated" }

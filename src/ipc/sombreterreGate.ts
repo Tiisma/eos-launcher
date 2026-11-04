@@ -19,7 +19,7 @@ const LOG_PREFIX = "[back] [ipc] [ipc/sombreterreGate.ts]"
 /** Encrypted with the OS keyring through safeStorage, beside the account store. */
 const TOKEN_FILE_NAME = "sombreterre-gate.bin"
 /** Read by the SombreterreGate.Client mod (GateClientSystem.TicketFileName) from the Installation's ModConfig. */
-const TICKET_FILE_NAME = "sombreterre-ticket.json"
+export const TICKET_FILE_NAME = "sombreterre-ticket.json"
 
 /** Sent with every request to the gate, which can turn away launchers older than it accepts. */
 const LAUNCHER_VERSION_HEADER = "X-EoS-Launcher-Version"
@@ -271,6 +271,11 @@ export async function gateRequestHeaders(): Promise<Record<string, string>> {
   return { [LAUNCHER_VERSION_HEADER]: app.getVersion(), ...(link ? { Authorization: `Bearer ${link.token}` } : {}) }
 }
 
+const DEFAULT_TICKET_LIFETIME_SECONDS = 6 * 60 * 60
+const MIN_TICKET_RENEWAL_DELAY_MS = 60_000
+const MAX_TICKET_RENEWAL_DELAY_MS = 6 * 60 * 60 * 1000
+let lastTicketLifetimeSeconds = DEFAULT_TICKET_LIFETIME_SECONDS
+
 /**
  * The game account this launch plays with: the launcher's active one, otherwise whoever logged in
  * inside the game. Only the name and UID are read out of the settings file.
@@ -290,6 +295,41 @@ async function gameAccount(installationPath: string): Promise<{ playerUid: strin
  * account, which puts it on the server's whitelist while the Discord account holds the role.
  */
 export async function prepareLaunchTicket(installationPath: string): Promise<SombreterreTicketResult> {
+  return requestAndWriteTicket(installationPath)
+}
+
+/** How long to wait before renewing a ticket that lasts this long: half its life, so a failure can be retried. */
+export function ticketRenewalDelayMs(expiresInSeconds: number): number {
+  const seconds = Number.isFinite(expiresInSeconds) && expiresInSeconds > 0 ? expiresInSeconds : DEFAULT_TICKET_LIFETIME_SECONDS
+  return Math.min(MAX_TICKET_RENEWAL_DELAY_MS, Math.max(MIN_TICKET_RENEWAL_DELAY_MS, (seconds / 2) * 1000))
+}
+
+/**
+ * Keeps the Installation's ticket valid for as long as the game runs, so its menu's Play button works
+ * however long the player stayed there or was away. A ticket that cannot be renewed is left in place:
+ * the server is who decides, and the next attempt may succeed. Answers the function that stops this.
+ */
+export function keepLaunchTicketFresh(installationPath: string): () => void {
+  let timer: NodeJS.Timeout | undefined
+  let stopped = false
+  const schedule = (delayMs: number): void => {
+    if (stopped) return
+    timer = setTimeout(() => {
+      void requestAndWriteTicket(installationPath).then((result) => {
+        if (!result.ok) logMessage("warn", `${LOG_PREFIX} [keepLaunchTicketFresh] Ticket not renewed: ${result.reason}.`)
+        schedule(result.ok ? ticketRenewalDelayMs(lastTicketLifetimeSeconds) : MIN_TICKET_RENEWAL_DELAY_MS)
+      })
+    }, delayMs)
+    timer.unref()
+  }
+  schedule(ticketRenewalDelayMs(lastTicketLifetimeSeconds))
+  return () => {
+    stopped = true
+    if (timer) clearTimeout(timer)
+  }
+}
+
+async function requestAndWriteTicket(installationPath: string): Promise<SombreterreTicketResult> {
   const account = await gameAccount(installationPath)
   if (!account) return { ok: false, reason: "no-game-account" }
 
@@ -298,6 +338,7 @@ export async function prepareLaunchTicket(installationPath: string): Promise<Som
     const body = await gateRequest("api/ticket", "POST", { auth: true, body: account })
     if (!isRecord(body) || typeof body["ticket"] !== "string" || !/^[A-Za-z0-9_-]{16,128}$/.test(body["ticket"])) return { ok: false, reason: "unreachable" }
     ticket = body["ticket"]
+    if (typeof body["expiresIn"] === "number") lastTicketLifetimeSeconds = body["expiresIn"]
   } catch (error) {
     const status = statusOf(error)
     if (status === 401) return { ok: false, reason: "not-linked" }

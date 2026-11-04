@@ -97,7 +97,9 @@ const api: BridgeAPI = {
     accountState: (): Promise<SombreterreAccountState> => ipcRenderer.invoke(IPC_CHANNELS.SOMBRETERRE.ACCOUNT_STATE),
     linkDiscord: (): Promise<SombreterreLinkResult> => ipcRenderer.invoke(IPC_CHANNELS.SOMBRETERRE.LINK_DISCORD),
     unlinkDiscord: (): Promise<void> => ipcRenderer.invoke(IPC_CHANNELS.SOMBRETERRE.UNLINK_DISCORD),
-    prepareLaunch: (installationPath: string): Promise<SombreterreTicketResult> => ipcRenderer.invoke(IPC_CHANNELS.SOMBRETERRE.PREPARE_LAUNCH, installationPath)
+    prepareLaunch: (installationPath: string): Promise<SombreterreTicketResult> => ipcRenderer.invoke(IPC_CHANNELS.SOMBRETERRE.PREPARE_LAUNCH, installationPath),
+    optionalMods: (): Promise<SombreterreOptionalMod[]> => ipcRenderer.invoke(IPC_CHANNELS.SOMBRETERRE.OPTIONAL_MODS),
+    chooseOptionalMod: (modid: string, chosen: boolean): Promise<void> => ipcRenderer.invoke(IPC_CHANNELS.SOMBRETERRE.CHOOSE_OPTIONAL_MOD, modid, chosen)
   },
   optimumManager: {
     getManifest: (): Promise<OptimumManifestResult> => ipcRenderer.invoke(IPC_CHANNELS.OPTIMUM_MANAGER.GET_MANIFEST),

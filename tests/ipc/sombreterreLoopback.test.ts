@@ -3,9 +3,18 @@ import { describe, it } from "vitest"
 
 import "./helpers/electronMock"
 
-import { startLoopbackListener } from "@src/ipc/sombreterreGate"
+import { startLoopbackListener, ticketRenewalDelayMs } from "@src/ipc/sombreterreGate"
 
 const HANDOFF = "a".repeat(43)
+
+describe("ticketRenewalDelayMs", () => {
+  it("renews at half the ticket's life, within bounds", () => {
+    assert.equal(ticketRenewalDelayMs(21600), 3 * 60 * 60 * 1000)
+    assert.equal(ticketRenewalDelayMs(10), 60_000)
+    assert.equal(ticketRenewalDelayMs(10 * 24 * 60 * 60), 6 * 60 * 60 * 1000)
+    assert.equal(ticketRenewalDelayMs(Number.NaN), 3 * 60 * 60 * 1000)
+  })
+})
 
 describe("the Discord link's loopback listener", () => {
   it("listens on loopback only and hands over the code the browser brings back", async () => {

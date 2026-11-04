@@ -1,10 +1,11 @@
+import { app } from "electron"
 import { createHash } from "node:crypto"
 import { join } from "node:path"
 import fse from "fs-extra"
 
 import { parseModDetailResponse } from "@domain/mods/moddb"
-import { PACK_STATE_FILE_NAME, installedModDbFile, packStateFor, parsePackManifest, parsePackState, planPackSync, privateFileUrl, resolveModDbRelease } from "@domain/sombreterre/pack"
-import type { PackEntry, ResolvedPackFile } from "@domain/sombreterre/pack"
+import { PACK_STATE_FILE_NAME, foreignModNames, installedModDbFile, packStateFor, parsePackManifest, parsePackState, planPackSync, privateFileUrl, resolveModDbRelease } from "@domain/sombreterre/pack"
+import type { PackEntry, PackManifest, ResolvedPackFile } from "@domain/sombreterre/pack"
 import { SOMBRETERRE_PROFILE } from "@domain/sombreterre/profile"
 import { writeJsonAtomic } from "@src/ipc/atomicJsonFile"
 import { BoundedResponseError, requestBoundedBuffer, requestBoundedText } from "@src/ipc/network"
@@ -22,6 +23,12 @@ const ARCHIVE_TIMEOUT_MS = 10 * 60_000
 
 /** Scratch folder for archives on their way in, inside the Installation but outside Mods. */
 const DOWNLOAD_FOLDER_NAME = ".sombreterre-download"
+
+/** Where a Mod the server does not offer ends up, inside the Installation but out of the game's sight. */
+const FOREIGN_MODS_FOLDER_NAME = "Mods-disabled"
+
+/** Which optional Mods this player chose. In the launcher's own data, since it outlives any one Installation. */
+const OPTIONAL_CHOICES_FILE_NAME = "sombreterre-optional.json"
 
 export type PackSyncProgress = { done: number; total: number }
 
@@ -92,6 +99,43 @@ async function downloadInto(file: ResolvedPackFile, scratchFolder: string, modsF
   return undefined
 }
 
+function optionalChoicesPath(): string {
+  return join(app.getPath("userData"), OPTIONAL_CHOICES_FILE_NAME)
+}
+
+async function readOptionalChoices(): Promise<Set<string>> {
+  const raw: unknown = await fse.readJson(optionalChoicesPath()).catch(() => undefined)
+  return new Set(Array.isArray(raw) ? raw.filter((value): value is string => typeof value === "string") : [])
+}
+
+async function fetchManifest(): Promise<PackManifest | undefined> {
+  const manifestUrl = packManifestUrl()
+  if (!manifestUrl) return undefined
+  const text = await requestBoundedText(manifestUrl, { maxBytes: MAX_PACK_MANIFEST_BYTES, headers: await headersFor(manifestUrl) })
+  const parsed = parsePackManifest(text)
+  return parsed.ok ? parsed.manifest : undefined
+}
+
+/** The optional Mods the server offers, with this player's choices. Empty when the server cannot be asked. */
+export async function listOptionalMods(): Promise<SombreterreOptionalMod[]> {
+  try {
+    const manifest = await fetchManifest()
+    const chosen = await readOptionalChoices()
+    return (manifest?.optional ?? []).map(({ modid, version, name, description }) => ({ modid, version, name, description, chosen: chosen.has(modid) }))
+  } catch (error) {
+    logMessage("debug", `${LOG_PREFIX} [listOptionalMods] Pack manifest unreachable: ${getErrorMessage(error)}`)
+    return []
+  }
+}
+
+/** Records a player's choice. It takes effect at their next Play, when the pack is synced. */
+export async function chooseOptionalMod(modid: string, chosen: boolean): Promise<void> {
+  const choices = await readOptionalChoices()
+  if (chosen) choices.add(modid)
+  else choices.delete(modid)
+  await writeJsonAtomic(optionalChoicesPath(), [...choices], { spaces: 2 })
+}
+
 /**
  * Brings one Installation's Mods folder in line with the pack.
  *
@@ -130,8 +174,9 @@ export async function syncSombreterrePack(installationPath: string, onProgress: 
   const state = parsePackState(await fse.readFile(statePath, "utf8").catch(() => undefined))
   const present = await fse.readdir(modsFolder).catch(() => [] as string[])
 
+  const chosen = await readOptionalChoices()
   const wanted: ResolvedPackFile[] = []
-  for (const entry of parsed.manifest.mods) {
+  for (const entry of [...parsed.manifest.mods, ...parsed.manifest.optional.filter((optional) => chosen.has(optional.modid))]) {
     const resolved = (entry.source === "moddb" ? installedModDbFile(entry, state, present) : undefined) ?? (await resolveEntry(entry, manifestUrl))
     if (isFailure(resolved)) return resolved
     wanted.push(resolved)
@@ -155,6 +200,14 @@ export async function syncSombreterrePack(installationPath: string, onProgress: 
   }
 
   for (const fileName of plan.remove) await fse.remove(join(modsFolder, fileName)).catch(() => undefined)
+
+  const foreign = foreignModNames(wanted, await fse.readdir(modsFolder).catch(() => [] as string[]))
+  for (const name of foreign) {
+    await fse.move(join(modsFolder, name), join(installationPath, FOREIGN_MODS_FOLDER_NAME, name), { overwrite: true }).catch((error: unknown) => {
+      logMessage("warn", `${LOG_PREFIX} [syncSombreterrePack] Could not move a Mod aside: ${getErrorMessage(error)}`)
+    })
+  }
+  if (foreign.length > 0) logMessage("info", `${LOG_PREFIX} [syncSombreterrePack] ${foreign.length} Mod(s) the server does not offer moved to ${FOREIGN_MODS_FOLDER_NAME}.`)
   await fse.remove(scratchFolder).catch(() => undefined)
 
   try {

@@ -130,4 +130,33 @@ describe("the Sombreterre home screen", () => {
 
     expect(await screen.findByText("EoS Launcher 0.1.2 is ready. It installs as soon as the game is closed.")).toBeTruthy()
   })
+
+  it("lets a linked player pick the optional mods the server offers, and shows nothing when there are none", async () => {
+    const api = renderHome({ linked: true, discordName: "alice", membership: "whitelisted" })
+    await act(async () => {})
+    expect(screen.queryByRole("button", { name: /optional mods/i })).toBeNull()
+    expect(api.sombreterre.optionalMods).toHaveBeenCalled()
+  })
+
+  it("saves a ticked optional mod", async () => {
+    const choose = vi.fn(async () => undefined)
+    installMockWindowApi({
+      sombreterre: {
+        accountState: vi.fn(async () => ({ linked: true as const, discordName: "alice", membership: "whitelisted" as const })),
+        serverStatus: vi.fn(async () => ({ ok: true as const, online: 1, max: 2 })),
+        optionalMods: vi.fn(async () => [{ modid: "shaders", version: "2.0.0", name: "Nice shaders", description: "Pretty light", chosen: false }]),
+        chooseOptionalMod: choose
+      },
+      appUpdater: { getState: vi.fn(async () => ({ status: "up-to-date" as const })) }
+    })
+    renderWithProviders(
+      <TaskProvider>
+        <SombreterreHome />
+      </TaskProvider>
+    )
+    await userEvent.click(await screen.findByRole("button", { name: /optional mods/i }))
+    await userEvent.click(await screen.findByRole("checkbox", { name: /nice shaders/i }))
+    await waitFor(() => expect(choose).toHaveBeenCalledWith("shaders", true))
+    await waitFor(() => expect((screen.getByRole("checkbox", { name: /nice shaders/i }) as HTMLInputElement).checked).toBe(true))
+  })
 })
