@@ -111,6 +111,16 @@ function existingStringSettings(document: unknown): Record<string, unknown> {
 }
 
 /**
+ * The game account a settings document is logged in as, and nothing else from it: for a player who
+ * logged in inside the game rather than in the launcher. Undefined when it names no account.
+ */
+export function clientSettingsAccount(document: unknown): { playerUid: string; playerName: string } | undefined {
+  const { playeruid, playername } = existingStringSettings(document)
+  if (typeof playeruid !== "string" || typeof playername !== "string" || !playeruid || !playername) return undefined
+  return { playerUid: playeruid, playerName: playername }
+}
+
+/**
  * Lays the session over `existingDocument` and gives back the whole document to
  * write.
  *

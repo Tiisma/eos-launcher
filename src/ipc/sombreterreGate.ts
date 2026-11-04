@@ -5,8 +5,10 @@ import type { AddressInfo } from "node:net"
 import { join } from "node:path"
 import fse from "fs-extra"
 
+import { CLIENT_SETTINGS_FILE_NAME, clientSettingsAccount } from "@domain/account/clientSettings"
 import { formatServerEndpoint } from "@domain/servers/bookmarks"
 import { SOMBRETERRE_PROFILE } from "@domain/sombreterre/profile"
+import { getConfig } from "@src/config/configManager"
 import { writeJsonAtomic } from "@src/ipc/atomicJsonFile"
 import { BoundedResponseError, requestBoundedText } from "@src/ipc/network"
 import { isRecord } from "@src/ipc/validation"
@@ -270,20 +272,37 @@ export async function gateRequestHeaders(): Promise<Record<string, string>> {
 }
 
 /**
+ * The game account this launch plays with: the launcher's active one, otherwise whoever logged in
+ * inside the game. Only the name and UID are read out of the settings file.
+ */
+async function gameAccount(installationPath: string): Promise<{ playerUid: string; playerName: string } | undefined> {
+  const config = await getConfig()
+  const active = config.accounts.find((candidate) => candidate.playerUid === config.activeAccountId)
+  if (active) return { playerUid: active.playerUid, playerName: active.playerName }
+  const settings = await fse.readJson(join(installationPath, CLIENT_SETTINGS_FILE_NAME)).catch(() => undefined)
+  return clientSettingsAccount(settings)
+}
+
+/**
  * Asks the server for a launch ticket and leaves it where the client mod reads it, in the
  * Installation's ModConfig, with the server address. One is fetched per launch; the server binds it to the
- * player's game account on first use, for the rest of that game session.
+ * player's game account on first use, for the rest of that game session. The request names the game
+ * account, which puts it on the server's whitelist while the Discord account holds the role.
  */
 export async function prepareLaunchTicket(installationPath: string): Promise<SombreterreTicketResult> {
+  const account = await gameAccount(installationPath)
+  if (!account) return { ok: false, reason: "no-game-account" }
+
   let ticket: string
   try {
-    const body = await gateRequest("api/ticket", "POST", { auth: true })
+    const body = await gateRequest("api/ticket", "POST", { auth: true, body: account })
     if (!isRecord(body) || typeof body["ticket"] !== "string" || !/^[A-Za-z0-9_-]{16,128}$/.test(body["ticket"])) return { ok: false, reason: "unreachable" }
     ticket = body["ticket"]
   } catch (error) {
     const status = statusOf(error)
     if (status === 401) return { ok: false, reason: "not-linked" }
     if (status === 403) return { ok: false, reason: "not-whitelisted" }
+    if (status === 409) return { ok: false, reason: "account-conflict" }
     if (status === 423) return { ok: false, reason: "locked-down" }
     if (status === 426) return { ok: false, reason: "launcher-outdated" }
     return { ok: false, reason: "unreachable" }

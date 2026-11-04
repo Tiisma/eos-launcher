@@ -1039,7 +1039,7 @@ declare global {
     | { ok: true; discordName: string; persisted: boolean }
     | { ok: false; reason: "unreachable" | "not-configured" | "expired" | "refused" | "busy" | "locked-down" | "launcher-outdated" }
 
-  type SombreterreTicketResult = { ok: true } | { ok: false; reason: "not-linked" | "not-whitelisted" | "locked-down" | "launcher-outdated" | "unreachable" | "write-failed" | "refused" }
+  type SombreterreTicketResult = { ok: true } | { ok: false; reason: "not-linked" | "not-whitelisted" | "locked-down" | "launcher-outdated" | "no-game-account" | "account-conflict" | "unreachable" | "write-failed" | "refused" }
 
   declare module "*.png" {
     const value: string

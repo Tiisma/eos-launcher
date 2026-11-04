@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
 import { describe, it } from "vitest"
 
-import { isSafePackFileName, packStateFor, parsePackManifest, parsePackState, planPackSync, privateFileUrl, resolveModDbRelease } from "@domain/sombreterre/pack"
+import { installedModDbFile, isSafePackFileName, packStateFor, parsePackManifest, parsePackState, planPackSync, privateFileUrl, resolveModDbRelease } from "@domain/sombreterre/pack"
 import type { PackState, ResolvedPackFile } from "@domain/sombreterre/pack"
 
 const SHA = "ab".repeat(32)
@@ -58,6 +58,23 @@ describe("parsePackManifest", () => {
     )
     assert.deepEqual(parsePackManifest(manifest([], { format: 2 })), { ok: false, reason: "unsupported-format" })
     assert.deepEqual(parsePackManifest("{"), { ok: false, reason: "not-json" })
+  })
+})
+
+describe("installedModDbFile", () => {
+  const state: PackState = { format: 1, files: [{ modid: "carryon", version: "1.0.0", fileName: "carryon-1.0.0.zip", sha256: "a".repeat(64) }] }
+  const entry = { source: "moddb" as const, modid: "carryon", version: "1.0.0", sha256: "a".repeat(64) }
+
+  it("answers without ModDB when that version is installed, and the sync then keeps it", () => {
+    const file = installedModDbFile(entry, state, ["CarryOn-1.0.0.zip"])
+    assert.equal(file?.fileName, "carryon-1.0.0.zip")
+    assert.deepEqual(planPackSync([file!], state, ["CarryOn-1.0.0.zip"]), { download: [], remove: [], keep: ["carryon-1.0.0.zip"] })
+  })
+
+  it("leaves a missing file, another version or another digest to ModDB", () => {
+    assert.equal(installedModDbFile(entry, state, []), undefined)
+    assert.equal(installedModDbFile({ ...entry, version: "1.1.0" }, state, ["carryon-1.0.0.zip"]), undefined)
+    assert.equal(installedModDbFile({ ...entry, sha256: "b".repeat(64) }, state, ["carryon-1.0.0.zip"]), undefined)
   })
 })
 

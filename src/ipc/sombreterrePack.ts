@@ -3,7 +3,7 @@ import { join } from "node:path"
 import fse from "fs-extra"
 
 import { parseModDetailResponse } from "@domain/mods/moddb"
-import { PACK_STATE_FILE_NAME, packStateFor, parsePackManifest, parsePackState, planPackSync, privateFileUrl, resolveModDbRelease } from "@domain/sombreterre/pack"
+import { PACK_STATE_FILE_NAME, installedModDbFile, packStateFor, parsePackManifest, parsePackState, planPackSync, privateFileUrl, resolveModDbRelease } from "@domain/sombreterre/pack"
 import type { PackEntry, ResolvedPackFile } from "@domain/sombreterre/pack"
 import { SOMBRETERRE_PROFILE } from "@domain/sombreterre/profile"
 import { writeJsonAtomic } from "@src/ipc/atomicJsonFile"
@@ -124,16 +124,18 @@ export async function syncSombreterrePack(installationPath: string, onProgress: 
   }
   if (parsed.manifest.gameVersion !== SOMBRETERRE_PROFILE.gameVersion) return { ok: false, reason: "game-version-mismatch" }
 
-  const wanted: ResolvedPackFile[] = []
-  for (const entry of parsed.manifest.mods) {
-    const resolved = await resolveEntry(entry, manifestUrl)
-    if (isFailure(resolved)) return resolved
-    wanted.push(resolved)
-  }
-
   const modsFolder = join(installationPath, "Mods")
   const scratchFolder = join(installationPath, DOWNLOAD_FOLDER_NAME)
   const statePath = join(installationPath, PACK_STATE_FILE_NAME)
+  const state = parsePackState(await fse.readFile(statePath, "utf8").catch(() => undefined))
+  const present = await fse.readdir(modsFolder).catch(() => [] as string[])
+
+  const wanted: ResolvedPackFile[] = []
+  for (const entry of parsed.manifest.mods) {
+    const resolved = (entry.source === "moddb" ? installedModDbFile(entry, state, present) : undefined) ?? (await resolveEntry(entry, manifestUrl))
+    if (isFailure(resolved)) return resolved
+    wanted.push(resolved)
+  }
 
   try {
     await fse.ensureDir(modsFolder)
@@ -142,9 +144,7 @@ export async function syncSombreterrePack(installationPath: string, onProgress: 
     return { ok: false, reason: "write-failed" }
   }
 
-  const stateText = await fse.readFile(statePath, "utf8").catch(() => undefined)
-  const present = await fse.readdir(modsFolder).catch(() => [] as string[])
-  const plan = planPackSync(wanted, parsePackState(stateText), present)
+  const plan = planPackSync(wanted, state, present)
 
   const total = plan.download.length
   onProgress({ done: 0, total })

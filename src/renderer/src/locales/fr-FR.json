@@ -919,6 +919,8 @@
       },
       "ticketFailed": {
         "not-linked": "Jeu non lancé : ce launcher n'est plus lié à Discord. Lie-le à nouveau depuis l'accueil.",
+        "no-game-account": "Jeu non lancé : aucun compte Vintage Story n'est connecté. Connecte-toi avec le bouton du compte, puis appuie à nouveau sur Jouer.",
+        "account-conflict": "Jeu non lancé : ce compte Vintage Story ou ton compte Discord est déjà lié à un autre. Utilise le compte avec lequel tu as joué la première fois, ou contacte l'équipe.",
         "not-whitelisted": "Jeu non lancé : ta whitelist n'est pas validée. Consulte le Discord de The Exiles of Shadowland.",
         "unreachable": "Jeu non lancé : le serveur n'a pas répondu. Réessaie dans un instant.",
         "write-failed": "Jeu non lancé : le ticket de connexion n'a pas pu être écrit dans le dossier du jeu. Vérifie que le disque a de la place, puis réessaie.",

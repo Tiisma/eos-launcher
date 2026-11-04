@@ -205,6 +205,18 @@ export interface PackSyncPlan {
 }
 
 /**
+ * The file a ModDB entry already has in Mods, when the launcher installed that same version and it
+ * is still there. Nothing is left to ask ModDB then, so its being down cannot stop a player who has
+ * everything. The address is left empty: {@link planPackSync} keeps this file, so it is never fetched.
+ */
+export function installedModDbFile(entry: ModDbPackEntry, state: PackState, presentFileNames: readonly string[]): ResolvedPackFile | undefined {
+  const present = new Set(presentFileNames.map((name) => name.toLowerCase()))
+  const file = state.files.find((candidate) => candidate.modid === entry.modid && candidate.version === entry.version && candidate.sha256 === entry.sha256 && present.has(candidate.fileName.toLowerCase()))
+  if (!file) return undefined
+  return { modid: entry.modid, version: entry.version, source: "moddb", fileName: file.fileName, url: "", ...(entry.sha256 ? { sha256: entry.sha256 } : {}) }
+}
+
+/**
  * Decides what a sync does, given what the pack wants, what the launcher installed last time and
  * which file names are actually in Mods right now.
  *

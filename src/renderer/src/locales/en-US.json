@@ -884,6 +884,8 @@
       },
       "ticketFailed": {
         "not-linked": "Game not started: this launcher is no longer linked to Discord. Link it again from the home screen.",
+        "no-game-account": "Game not started: no Vintage Story account is logged in. Log in with the account button, then press Play again.",
+        "account-conflict": "Game not started: this Vintage Story account or your Discord account is already linked to another one. Use the account you first played with, or contact the staff.",
         "not-whitelisted": "Game not started: your whitelist is not validated. Check The Exiles of Shadowland Discord.",
         "unreachable": "Game not started: the server did not answer. Try again in a moment.",
         "write-failed": "Game not started: the launch ticket could not be written to the game folder. Check that the disk has room, then try again.",
