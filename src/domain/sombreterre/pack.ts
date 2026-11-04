@@ -229,7 +229,9 @@ export interface PackSyncPlan {
  */
 export function installedModDbFile(entry: ModDbPackEntry, state: PackState, presentFileNames: readonly string[]): ResolvedPackFile | undefined {
   const present = new Set(presentFileNames.map((name) => name.toLowerCase()))
-  const file = state.files.find((candidate) => candidate.modid === entry.modid && candidate.version === entry.version && candidate.sha256 === entry.sha256 && present.has(candidate.fileName.toLowerCase()))
+  const file = state.files.find(
+    (candidate) => candidate.modid === entry.modid && candidate.version === entry.version && candidate.sha256 === entry.sha256 && present.has(candidate.fileName.toLowerCase())
+  )
   if (!file) return undefined
   return { modid: entry.modid, version: entry.version, source: "moddb", fileName: file.fileName, url: "", ...(entry.sha256 ? { sha256: entry.sha256 } : {}) }
 }

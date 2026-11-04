@@ -1,6 +1,6 @@
 {
   "name": "eos-launcher",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "The Exiles of Shadowland - Launcher, for Vintage Story",
   "overrides": {
     "js-yaml": "^4.3.2",
