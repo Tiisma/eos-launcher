@@ -169,4 +169,36 @@ describe("the Sombreterre home screen", () => {
     await userEvent.click(await screen.findByRole("button", { name: /^clear$/i }))
     await waitFor(() => expect(clear).toHaveBeenCalledTimes(1))
   })
+
+  it("gets the optional mods button once a server that was down answers", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    try {
+      const optionalMods = vi
+        .fn<() => Promise<SombreterreOptionalMod[] | null>>()
+        .mockResolvedValueOnce(null)
+        .mockResolvedValue([{ modid: "shaders", version: "2.0.0", name: "Nice shaders", description: "", chosen: false }])
+      installMockWindowApi({
+        sombreterre: {
+          accountState: vi.fn(async () => ({ linked: true as const, discordName: "alice", membership: "whitelisted" as const })),
+          serverStatus: vi.fn(async () => ({ ok: false as const })),
+          optionalMods
+        },
+        appUpdater: { getState: vi.fn(async () => ({ status: "up-to-date" as const })) }
+      })
+      renderWithProviders(
+        <TaskProvider>
+          <SombreterreHome />
+        </TaskProvider>
+      )
+      await waitFor(() => expect(optionalMods).toHaveBeenCalledTimes(1))
+      expect(screen.queryByRole("button", { name: /optional mods/i })).toBeNull()
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(15_000)
+      })
+      expect(await screen.findByRole("button", { name: /optional mods/i })).toBeTruthy()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
 })

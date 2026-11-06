@@ -4,9 +4,16 @@ import { PiPuzzlePieceDuotone } from "react-icons/pi"
 
 import { NormalButton } from "@renderer/components/ui/Buttons"
 
+/** How soon to ask again after the server did not answer, as while it restarts. */
+const RETRY_AFTER_FAILURE_MS = 15_000
+/** How often to pick up mods the server added while the launcher stays open. */
+const REFRESH_MS = 5 * 60_000
+
 /**
  * The optional Mods the server offers, each with a box to tick. Shown only when there are some.
  * A choice is saved straight away and takes effect at the next Play, when the pack is synced.
+ * The list keeps being asked for, so a server that was down when the launcher opened still gets its
+ * button, and a failed attempt leaves the list already shown in place.
  */
 function OptionalModsButton({ disabled }: { disabled: boolean }): JSX.Element | null {
   const { t } = useTranslation()
@@ -15,20 +22,26 @@ function OptionalModsButton({ disabled }: { disabled: boolean }): JSX.Element | 
 
   useEffect(() => {
     let current = true
-    void window.api.sombreterre.optionalMods().then((list) => {
-      if (current) setMods(list)
-    })
+    let timer: ReturnType<typeof setTimeout> | undefined
+    async function refresh(): Promise<void> {
+      const list = await window.api.sombreterre.optionalMods()
+      if (!current) return
+      if (list) setMods(list)
+      timer = setTimeout(() => void refresh(), list ? REFRESH_MS : RETRY_AFTER_FAILURE_MS)
+    }
+    void refresh()
     return (): void => {
       current = false
+      if (timer) clearTimeout(timer)
     }
   }, [])
-
-  if (mods.length === 0) return null
 
   async function choose(modid: string, chosen: boolean): Promise<void> {
     await window.api.sombreterre.chooseOptionalMod(modid, chosen)
     setMods((list) => list.map((mod) => (mod.modid === modid ? { ...mod, chosen } : mod)))
   }
+
+  if (mods.length === 0) return null
 
   return (
     <>

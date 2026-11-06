@@ -103,7 +103,7 @@ declare global {
       unlinkDiscord: () => Promise<void>
       /** Fetches a launch ticket and writes it into the Installation for the client gate mod. */
       prepareLaunch: (installationPath: string) => Promise<SombreterreTicketResult>
-      optionalMods: () => Promise<SombreterreOptionalMod[]>
+      optionalMods: () => Promise<SombreterreOptionalMod[] | null>
       chooseOptionalMod: (modid: string, chosen: boolean) => Promise<void>
       clearGameCache: () => Promise<SombreterreClearCacheResult>
     }

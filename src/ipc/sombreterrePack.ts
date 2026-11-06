@@ -116,15 +116,16 @@ async function fetchManifest(): Promise<PackManifest | undefined> {
   return parsed.ok ? parsed.manifest : undefined
 }
 
-/** The optional Mods the server offers, with this player's choices. Empty when the server cannot be asked. */
-export async function listOptionalMods(): Promise<SombreterreOptionalMod[]> {
+/** The optional Mods the server offers, with this player's choices. Null when the server could not be asked. */
+export async function listOptionalMods(): Promise<SombreterreOptionalMod[] | null> {
   try {
     const manifest = await fetchManifest()
+    if (!manifest) return null
     const chosen = await readOptionalChoices()
-    return (manifest?.optional ?? []).map(({ modid, version, name, description }) => ({ modid, version, name, description, chosen: chosen.has(modid) }))
+    return manifest.optional.map(({ modid, version, name, description }) => ({ modid, version, name, description, chosen: chosen.has(modid) }))
   } catch (error) {
     logMessage("debug", `${LOG_PREFIX} [listOptionalMods] Pack manifest unreachable: ${getErrorMessage(error)}`)
-    return []
+    return null
   }
 }
 

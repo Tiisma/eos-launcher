@@ -68,7 +68,7 @@ ipcMain.handle(IPC_CHANNELS.SOMBRETERRE.UNLINK_DISCORD, async (event): Promise<v
   await unlinkDiscord()
 })
 
-ipcMain.handle(IPC_CHANNELS.SOMBRETERRE.OPTIONAL_MODS, async (event): Promise<SombreterreOptionalMod[]> => {
+ipcMain.handle(IPC_CHANNELS.SOMBRETERRE.OPTIONAL_MODS, async (event): Promise<SombreterreOptionalMod[] | null> => {
   assertTrustedIpcSender(event)
   return listOptionalMods()
 })
