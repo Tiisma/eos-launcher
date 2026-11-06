@@ -146,7 +146,8 @@ export function createMockWindowApi(overrides: WindowApiOverrides = {}): MockedB
       unlinkDiscord: vi.fn(notMocked("sombreterre.unlinkDiscord")),
       prepareLaunch: vi.fn(notMocked("sombreterre.prepareLaunch")),
       optionalMods: vi.fn(async () => []),
-      chooseOptionalMod: vi.fn(notMocked("sombreterre.chooseOptionalMod"))
+      chooseOptionalMod: vi.fn(notMocked("sombreterre.chooseOptionalMod")),
+      clearGameCache: vi.fn(notMocked("sombreterre.clearGameCache"))
     },
     optimumManager: {
       // No Optimum unless a test says otherwise: a page that mounts without

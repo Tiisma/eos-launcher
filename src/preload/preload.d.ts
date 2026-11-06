@@ -105,6 +105,7 @@ declare global {
       prepareLaunch: (installationPath: string) => Promise<SombreterreTicketResult>
       optionalMods: () => Promise<SombreterreOptionalMod[]>
       chooseOptionalMod: (modid: string, chosen: boolean) => Promise<void>
+      clearGameCache: () => Promise<SombreterreClearCacheResult>
     }
     optimumManager: {
       /** Optimum's published overlay for this machine, or the one reason no Optimum is offered this session. Never rejects. */

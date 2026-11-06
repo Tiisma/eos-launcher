@@ -10,6 +10,7 @@ import logo from "@renderer/assets/sombreterre/logo.png"
 import { useSombreterreGate } from "@renderer/features/sombreterre/hooks/useSombreterreGate"
 import { useSombreterrePlay } from "@renderer/features/sombreterre/hooks/useSombreterrePlay"
 import { useLauncherUpdate } from "@renderer/features/sombreterre/hooks/useLauncherUpdate"
+import ClearCacheButton from "@renderer/features/sombreterre/components/ClearCacheButton"
 import LauncherUpdateBanner from "@renderer/features/sombreterre/components/LauncherUpdateBanner"
 import OptionalModsButton from "@renderer/features/sombreterre/components/OptionalModsButton"
 import type { SombreterrePhase } from "@renderer/features/sombreterre/hooks/useSombreterrePlay"
@@ -71,6 +72,7 @@ function SombreterreHome(): JSX.Element {
             </NormalButton>
           )}
           {linked && <OptionalModsButton disabled={busy} />}
+          <ClearCacheButton disabled={busy} />
           <LinkButton to="/config" title={t("components.mainMenu.configTitle")} size="md" icon={<PiGearDuotone />} />
         </div>
       </div>

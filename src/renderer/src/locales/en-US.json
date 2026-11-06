@@ -882,6 +882,18 @@
         "locked-down": "Mods not updated: the staff has temporarily closed the server to new connections. Check The Exiles of Shadowland Discord.",
         "launcher-outdated": "Mods not updated: this launcher is out of date. Install the latest version from https://github.com/Tiisma/eos-launcher/releases/latest"
       },
+      "clearCache": {
+        "title": "Clear Cache",
+        "question": "Delete the game's Cache folder?",
+        "consequence": "Your worlds, settings and mods are kept. The game rebuilds the cache, so the next start and connection may take longer.",
+        "confirm": "Clear",
+        "done": "Game cache cleared.",
+        "failed": {
+          "playing": "Cache not cleared: close the game first.",
+          "busy": "Cache not cleared: the launcher is working on the game folder. Try again in a moment.",
+          "failed": "Cache not cleared: some files could not be deleted. Close the game if it is open, then try again."
+        }
+      },
       "optionalMods": {
         "title": "Optional mods",
         "why": "The server allows these mods and no others. Your choice applies the next time you press Play.",

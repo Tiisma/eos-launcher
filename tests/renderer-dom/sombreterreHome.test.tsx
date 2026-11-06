@@ -159,4 +159,14 @@ describe("the Sombreterre home screen", () => {
     await waitFor(() => expect(choose).toHaveBeenCalledWith("shaders", true))
     await waitFor(() => expect((screen.getByRole("checkbox", { name: /nice shaders/i }) as HTMLInputElement).checked).toBe(true))
   })
+
+  it("clears the game cache only after asking", async () => {
+    const api = renderHome({ linked: true, discordName: "alice", membership: "whitelisted" })
+    const clear = api.sombreterre.clearGameCache as ReturnType<typeof vi.fn>
+    clear.mockResolvedValue({ ok: true })
+    await userEvent.click(await screen.findByRole("button", { name: /clear cache/i }))
+    expect(clear).not.toHaveBeenCalled()
+    await userEvent.click(await screen.findByRole("button", { name: /^clear$/i }))
+    await waitFor(() => expect(clear).toHaveBeenCalledTimes(1))
+  })
 })
