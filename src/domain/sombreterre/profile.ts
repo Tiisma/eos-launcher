@@ -67,7 +67,7 @@ export const SOMBRETERRE_PROFILE: SombreterreProfile = {
   installationId: "sombreterre",
   gameVersion: "1.22.7",
   optimum: true,
-  optimumVersion: "0.3.22",
+  optimumVersion: "0.4.2",
   server: { id: "sombreterre-server", name: "The Exiles of Shadowland", host: "57.129.112.230", port: 42420 },
   connectOnLaunch: false,
   gateBaseUrl: "https://eos-gate.duckdns.org:8443/",
