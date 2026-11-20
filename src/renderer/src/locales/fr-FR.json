@@ -890,6 +890,7 @@
       "serverLine": "Vintage Story {{version}} · mods du serveur tenus à jour",
       "phase": {
         "installingGame": "Installation du jeu…",
+        "updatingOptimum": "Mise à jour d'Optimum…",
         "preparingInstallation": "Préparation du dossier de jeu…",
         "syncingMods": "Vérification des mods du serveur…",
         "syncingModsProgress": "Téléchargement des mods : {{done}} sur {{total}}",

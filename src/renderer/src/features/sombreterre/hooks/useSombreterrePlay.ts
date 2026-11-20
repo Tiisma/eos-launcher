@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next"
 import { DEFAULT_COMPRESSION_LEVEL } from "@domain/config/defaults"
 import { createInstallation } from "@domain/installations/create"
 import { firstFreeFolder, toFolderPlatform } from "@domain/paths"
+import { optimumMayNeedUpdate, shouldApplyOptimum } from "@domain/sombreterre/optimum"
 import { SOMBRETERRE_PROFILE } from "@domain/sombreterre/profile"
 import { isInterruptedInstall } from "@domain/versions/interruptedInstall"
 import { createPathBuilderPort } from "@renderer/adapters/paths"
@@ -15,10 +16,11 @@ import { useLaunchGame } from "@renderer/features/launch/hooks/useLaunchGame"
 import { useFoldersInUse } from "@renderer/features/versions/hooks/useFoldersInUse"
 import { useGameVersionCatalog } from "@renderer/features/versions/hooks/useGameVersionCatalog"
 import { useInstallVersion } from "@renderer/features/versions/hooks/useInstallVersion"
+import { useOptimumActions } from "@renderer/features/versions/hooks/useOptimumActions"
 
 const LOG_TAG = "[front] [sombreterre] [features/sombreterre/hooks/useSombreterrePlay.ts] [useSombreterrePlay > play]"
 
-export type SombreterrePhase = "idle" | "installing-game" | "preparing-installation" | "syncing-mods" | "playing"
+export type SombreterrePhase = "idle" | "installing-game" | "updating-optimum" | "preparing-installation" | "syncing-mods" | "playing"
 
 export interface SombreterrePlay {
   phase: SombreterrePhase
@@ -65,6 +67,7 @@ export function useSombreterrePlay(): SombreterrePlay {
   const installVersion = useInstallVersion()
   const catalog = useGameVersionCatalog()
   const { launchGame } = useLaunchGame()
+  const { applyOptimum } = useOptimumActions()
 
   const [phase, setPhase] = useState<SombreterrePhase>("idle")
   const [syncProgress, setSyncProgress] = useState<{ done: number; total: number } | undefined>()
@@ -80,7 +83,7 @@ export function useSombreterrePlay(): SombreterrePlay {
 
   async function ensureGameVersion(): Promise<GameVersionType | undefined> {
     const installed = findGameVersion(latest.current.gameVersions)
-    if (installed) return installed
+    if (installed) return bringOptimumUpToDate(installed)
 
     const downloadable = catalog.gameVersions.find((version) => version.version === SOMBRETERRE_PROFILE.gameVersion)
     if (!downloadable) {
@@ -100,6 +103,27 @@ export function useSombreterrePlay(): SombreterrePlay {
 
     setPhase("installing-game")
     if (!(await installVersion(downloadable, folder, optimum, { stayOnPage: true }))) return undefined
+
+    await nextFrame()
+    return findGameVersion(latest.current.gameVersions)
+  }
+
+  /**
+   * Brings an installed build to the Optimum version the profile pins, so changing the pin in a launcher
+   * update reaches players who installed the game long ago. When the manifest cannot be had, or the patch
+   * fails (it has already said why), the build is played as it is: Optimum's patcher refuses before writing
+   * and rolls back what it wrote, so a failed update leaves the previous Optimum working.
+   */
+  async function bringOptimumUpToDate(installed: GameVersionType): Promise<GameVersionType | undefined> {
+    if (!SOMBRETERRE_PROFILE.optimum || !optimumMayNeedUpdate(installed.variant, SOMBRETERRE_PROFILE.optimumVersion)) return installed
+
+    const manifest = await window.api.optimumManager.getManifest()
+    if (!manifest.ok || !shouldApplyOptimum(installed.variant, installed.version, manifest.manifest)) return installed
+
+    window.api.utils.logMessage("info", `${LOG_TAG} Bringing Optimum to ${manifest.manifest.optimumVersion}.`)
+    setPhase("updating-optimum")
+    const updated = await applyOptimum({ id: installed.id, path: installed.path, version: installed.version }, manifest.manifest)
+    if (!updated) window.api.utils.logMessage("warn", `${LOG_TAG} Optimum not updated; playing the installed build.`)
 
     await nextFrame()
     return findGameVersion(latest.current.gameVersions)

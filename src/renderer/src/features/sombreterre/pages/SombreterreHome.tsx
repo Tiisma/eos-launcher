@@ -17,6 +17,7 @@ import type { SombreterrePhase } from "@renderer/features/sombreterre/hooks/useS
 
 const PHASE_KEYS: Record<Exclude<SombreterrePhase, "idle">, string> = {
   "installing-game": "features.sombreterre.phase.installingGame",
+  "updating-optimum": "features.sombreterre.phase.updatingOptimum",
   "preparing-installation": "features.sombreterre.phase.preparingInstallation",
   "syncing-mods": "features.sombreterre.phase.syncingMods",
   playing: "features.sombreterre.phase.playing"
