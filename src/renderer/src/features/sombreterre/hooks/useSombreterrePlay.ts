@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next"
 import { DEFAULT_COMPRESSION_LEVEL } from "@domain/config/defaults"
 import { createInstallation } from "@domain/installations/create"
 import { firstFreeFolder, toFolderPlatform } from "@domain/paths"
-import { optimumMayNeedUpdate, shouldApplyOptimum } from "@domain/sombreterre/optimum"
+import { shouldApplyOptimum } from "@domain/sombreterre/optimum"
 import { SOMBRETERRE_PROFILE } from "@domain/sombreterre/profile"
 import { isInterruptedInstall } from "@domain/versions/interruptedInstall"
 import { createPathBuilderPort } from "@renderer/adapters/paths"
@@ -115,7 +115,7 @@ export function useSombreterrePlay(): SombreterrePlay {
    * and rolls back what it wrote, so a failed update leaves the previous Optimum working.
    */
   async function bringOptimumUpToDate(installed: GameVersionType): Promise<GameVersionType | undefined> {
-    if (!SOMBRETERRE_PROFILE.optimum || !optimumMayNeedUpdate(installed.variant, SOMBRETERRE_PROFILE.optimumVersion)) return installed
+    if (!SOMBRETERRE_PROFILE.optimum) return installed
 
     const manifest = await window.api.optimumManager.getManifest()
     if (!manifest.ok || !shouldApplyOptimum(installed.variant, installed.version, manifest.manifest)) return installed

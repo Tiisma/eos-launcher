@@ -116,6 +116,27 @@ async function fetchManifest(): Promise<PackManifest | undefined> {
   return parsed.ok ? parsed.manifest : undefined
 }
 
+/** How long the server's Optimum choice is reused before the pack manifest is read again. */
+const OPTIMUM_TARGET_TTL_MS = 5 * 60_000
+let optimumTarget: { value: string | undefined; at: number } | undefined
+
+/**
+ * The Optimum release the server wants players on ("latest" or a version), or undefined when it names
+ * none or cannot be asked. Kept for a few minutes, since every Optimum lookup asks for it.
+ */
+export async function serverOptimumVersion(): Promise<string | undefined> {
+  if (optimumTarget && Date.now() - optimumTarget.at < OPTIMUM_TARGET_TTL_MS) return optimumTarget.value
+  try {
+    const manifest = await fetchManifest()
+    if (!manifest) return optimumTarget?.value
+    optimumTarget = { value: manifest.optimum, at: Date.now() }
+    return manifest.optimum
+  } catch (error) {
+    logMessage("debug", `${LOG_PREFIX} [serverOptimumVersion] Pack manifest unreachable: ${getErrorMessage(error)}`)
+    return optimumTarget?.value
+  }
+}
+
 /** The optional Mods the server offers, with this player's choices. Null when the server could not be asked. */
 export async function listOptionalMods(): Promise<SombreterreOptionalMod[] | null> {
   try {

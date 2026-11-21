@@ -68,7 +68,11 @@ export interface PackManifest {
   gameVersion: string
   mods: PackEntry[]
   optional: OptionalPackEntry[]
+  /** The Optimum release the server wants players on: a version, or "latest". Absent: the launcher's own. */
+  optimum?: string
 }
+
+const OPTIMUM_TARGET_PATTERN = /^(latest|\d+\.\d+\.\d+)$/
 
 export type ParsePackManifestFailure = "not-json" | "unsupported-format" | "bad-header" | "bad-entry" | "too-many-entries" | "duplicate-modid"
 
@@ -162,7 +166,8 @@ export function parsePackManifest(text: string): ParsePackManifestResult {
     entries.push(entry)
   }
 
-  return { ok: true, manifest: { format: PACK_FORMAT, name, gameVersion, mods: entries, optional: readOptionalEntries(raw["optional"], seen) } }
+  const optimum = typeof raw["optimum"] === "string" && OPTIMUM_TARGET_PATTERN.test(raw["optimum"]) ? raw["optimum"] : undefined
+  return { ok: true, manifest: { format: PACK_FORMAT, name, gameVersion, mods: entries, optional: readOptionalEntries(raw["optional"], seen), ...(optimum ? { optimum } : {}) } }
 }
 
 /** One archive the Installation should hold, once every entry has been resolved to a download. */

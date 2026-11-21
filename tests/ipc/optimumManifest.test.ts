@@ -21,6 +21,9 @@ import { SOMBRETERRE_PROFILE } from "@domain/sombreterre/profile"
  * tries again.
  */
 vi.mock("@src/ipc/workers/download", () => ({ runDownload: vi.fn() }))
+// The server's choice is read from the gate's pack manifest; no server names one unless a test says so.
+const server = vi.hoisted(() => ({ optimum: undefined as string | undefined }))
+vi.mock("@src/ipc/sombreterrePack", () => ({ serverOptimumVersion: vi.fn(async () => server.optimum) }))
 vi.mock("@src/utils/logManager", () => ({
   getErrorMessage: (err: unknown): string => String(err),
   logMessage: vi.fn()
@@ -86,6 +89,7 @@ afterAll(() => {
 
 afterEach(() => {
   vi.clearAllMocks()
+  server.optimum = undefined
 })
 
 describe("getOptimumManifest", () => {
@@ -153,6 +157,23 @@ describe("getOptimumManifest", () => {
     assert.ok(first.ok)
     assert.ok(second.ok)
     assert.equal(module.calls(), 1)
+  })
+
+  it.skipIf(RID === undefined)("reads the release the server names, or the newest for latest, and reads again when that changes", async () => {
+    const module = await load(() => manifestDocument())
+    const { runDownload } = await import("@src/ipc/workers/download")
+    const asked = (): (string | undefined)[] => vi.mocked(runDownload).mock.calls.map(([options]) => String(options.url))
+
+    server.optimum = "0.4.1"
+    await module.getOptimumManifest()
+    await module.getOptimumManifest()
+    server.optimum = "latest"
+    await module.getOptimumManifest()
+
+    assert.deepEqual(asked(), [
+      `https://github.com/StratumServer/Optimum/releases/download/v0.4.1/${optimumManifestFileName(RID!)}`,
+      `https://github.com/StratumServer/Optimum/releases/latest/download/${optimumManifestFileName(RID!)}`
+    ])
   })
 
   it("reports an unreachable manifest without saying more than it knows", async () => {

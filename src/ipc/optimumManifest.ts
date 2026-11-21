@@ -25,6 +25,7 @@ import { join } from "node:path"
 import { parseOptimumManifest, type OptimumManifest } from "@domain/optimum/manifest"
 import { SOMBRETERRE_PROFILE } from "@domain/sombreterre/profile"
 import { hostRid, optimumManifestDownloadUrl, optimumManifestFileName, overlayCacheFolder, overlayDownloadUrl } from "@domain/optimum/plan"
+import { serverOptimumVersion } from "@src/ipc/sombreterrePack"
 import { optimumTestOrigin } from "@src/ipc/validation"
 import { getErrorMessage, logMessage } from "@src/utils/logManager"
 
@@ -45,9 +46,19 @@ const MAX_OPTIMUM_MANIFEST_BYTES = 256 * 1024
  * unchanged: the archive is still checked against the hash this manifest
  * publishes, and every file staged out of it against its own.
  */
-function manifestSourceUrl(rid: NonNullable<ReturnType<typeof hostRid>>): string {
+/**
+ * The release to read: the one the server names ("latest" meaning the newest), otherwise the one built
+ * into the launcher. Undefined stands for the newest.
+ */
+async function targetOptimumVersion(): Promise<string | undefined> {
+  const server = await serverOptimumVersion()
+  if (server === "latest") return undefined
+  return server ?? (SOMBRETERRE_PROFILE.optimumVersion || undefined)
+}
+
+function manifestSourceUrl(rid: NonNullable<ReturnType<typeof hostRid>>, version: string | undefined): string {
   const origin = optimumTestOrigin()
-  return origin === undefined ? optimumManifestDownloadUrl(rid, SOMBRETERRE_PROFILE.optimumVersion) : `${origin}/${optimumManifestFileName(rid)}`
+  return origin === undefined ? optimumManifestDownloadUrl(rid, version) : `${origin}/${optimumManifestFileName(rid)}`
 }
 
 export function overlaySourceUrl(manifest: OptimumManifest): string {
@@ -77,8 +88,10 @@ class UnusableManifestError extends Error {
 }
 
 let manifestCache: Promise<OptimumManifest> | undefined
+/** The release the cached manifest was read for, so a change on the server is picked up. */
+let manifestCacheTarget: string | undefined
 
-async function fetchOptimumManifest(): Promise<OptimumManifest> {
+async function fetchOptimumManifest(version: string | undefined): Promise<OptimumManifest> {
   const rid = hostRid(process.platform, process.arch)
   if (rid === undefined) throw new UnusableManifestError("unsupported-system")
 
@@ -92,7 +105,7 @@ async function fetchOptimumManifest(): Promise<OptimumManifest> {
   // only when someone asks for Optimum, never while the main window is coming up.
   const { runDownload } = await import("@src/ipc/workers/download")
   const manifestPath = await runDownload({
-    url: manifestSourceUrl(rid),
+    url: manifestSourceUrl(rid, version),
     outputPath: directory,
     fileName: optimumManifestFileName(rid),
     maxBytes: MAX_OPTIMUM_MANIFEST_BYTES
@@ -116,7 +129,11 @@ async function fetchOptimumManifest(): Promise<OptimumManifest> {
  * into one calm line.
  */
 export async function getOptimumManifest(): Promise<OptimumManifestResult> {
-  manifestCache ??= fetchOptimumManifest()
+  const version = await targetOptimumVersion()
+  const key = version ?? "latest"
+  if (manifestCache && manifestCacheTarget !== key) manifestCache = undefined
+  manifestCacheTarget = key
+  manifestCache ??= fetchOptimumManifest(version)
 
   try {
     const manifest = await manifestCache

@@ -84,6 +84,18 @@ describe("optional mods", () => {
     )
   })
 
+  it("reads the Optimum release the server names, and ignores anything else there", () => {
+    const withOptimum = (optimum: unknown): string => JSON.stringify({ format: 1, name: "p", gameVersion: "1.22.7", mods: [], optimum })
+    const read = (text: string): string | undefined => {
+      const parsed = parsePackManifest(text)
+      return parsed.ok ? parsed.manifest.optimum : "refused"
+    }
+    assert.equal(read(withOptimum("0.4.2")), "0.4.2")
+    assert.equal(read(withOptimum("latest")), "latest")
+    assert.equal(read(withOptimum("../evil")), undefined)
+    assert.equal(read(withOptimum(42)), undefined)
+  })
+
   it("reads a manifest from a server that offers none", () => {
     const parsed = parsePackManifest(manifest(undefined))
     assert.deepEqual(parsed.ok && parsed.manifest.optional, [])
