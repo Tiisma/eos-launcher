@@ -26,6 +26,7 @@
  */
 
 import { isRecord } from "../records"
+import { readBackgrounds, type PackBackground } from "./backgrounds"
 
 export const PACK_FORMAT = 1
 
@@ -70,6 +71,8 @@ export interface PackManifest {
   optional: OptionalPackEntry[]
   /** The Optimum release the server wants players on: a version, or "latest". Absent: the launcher's own. */
   optimum?: string
+  /** Main menu backgrounds the server offers; empty when it offers none. */
+  backgrounds: PackBackground[]
 }
 
 const OPTIMUM_TARGET_PATTERN = /^(latest|\d+\.\d+\.\d+)$/
@@ -167,7 +170,18 @@ export function parsePackManifest(text: string): ParsePackManifestResult {
   }
 
   const optimum = typeof raw["optimum"] === "string" && OPTIMUM_TARGET_PATTERN.test(raw["optimum"]) ? raw["optimum"] : undefined
-  return { ok: true, manifest: { format: PACK_FORMAT, name, gameVersion, mods: entries, optional: readOptionalEntries(raw["optional"], seen), ...(optimum ? { optimum } : {}) } }
+  return {
+    ok: true,
+    manifest: {
+      format: PACK_FORMAT,
+      name,
+      gameVersion,
+      mods: entries,
+      optional: readOptionalEntries(raw["optional"], seen),
+      backgrounds: readBackgrounds(raw["backgrounds"]),
+      ...(optimum ? { optimum } : {})
+    }
+  }
 }
 
 /** One archive the Installation should hold, once every entry has been resolved to a download. */
