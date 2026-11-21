@@ -2,7 +2,7 @@ import { createHash } from "node:crypto"
 import { join } from "node:path"
 import fse from "fs-extra"
 
-import { BACKGROUNDS_FOLDER_NAME, BACKGROUNDS_STATE_FILE_NAME, MAX_BACKGROUND_BYTES, parseBackgroundsState, planBackgrounds } from "@domain/sombreterre/backgrounds"
+import { BACKGROUNDS_FOLDER_NAME, BACKGROUNDS_STATE_FILE_NAME, LOGO_FILE_NAME, MAX_BACKGROUND_BYTES, parseBackgroundsState, planBackgrounds } from "@domain/sombreterre/backgrounds"
 import type { PackBackground } from "@domain/sombreterre/backgrounds"
 import { writeJsonAtomic } from "@src/ipc/atomicJsonFile"
 import { requestBoundedBuffer } from "@src/ipc/network"
@@ -18,6 +18,31 @@ export function backgroundUrl(manifestUrl: URL, file: string): URL | undefined {
     return url.origin === manifestUrl.origin ? url : undefined
   } catch {
     return undefined
+  }
+}
+
+/**
+ * Brings the Installation's copy of the server's logo in line: fetched when it changed, removed when the
+ * server has none, so the menu goes back to the game's logo. Like the backgrounds, never fails the sync.
+ */
+export async function syncLogo(installationPath: string, logo: { sha256: string } | undefined, manifestUrl: URL, headers: Record<string, string>): Promise<void> {
+  const path = join(installationPath, LOGO_FILE_NAME)
+  try {
+    if (!logo) {
+      await fse.remove(path)
+      return
+    }
+    const current = await fse.readFile(path).catch(() => undefined)
+    if (current && createHash("sha256").update(current).digest("hex") === logo.sha256) return
+
+    const bytes = await requestBoundedBuffer(new URL("logo.png", manifestUrl), { accept: "image/png", maxBytes: MAX_BACKGROUND_BYTES, timeoutMs: BACKGROUND_TIMEOUT_MS, headers })
+    if (createHash("sha256").update(bytes).digest("hex") !== logo.sha256) throw new Error("checksum mismatch")
+    await fse.writeFile(`${path}.tmp`, bytes)
+    await fse.move(`${path}.tmp`, path, { overwrite: true })
+    logMessage("info", `${LOG_PREFIX} [syncLogo] Menu logo updated.`)
+  } catch (error) {
+    await fse.remove(`${path}.tmp`).catch(() => undefined)
+    logMessage("warn", `${LOG_PREFIX} [syncLogo] Could not update the menu logo: ${getErrorMessage(error)}`)
   }
 }
 

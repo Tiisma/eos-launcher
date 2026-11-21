@@ -26,7 +26,7 @@
  */
 
 import { isRecord } from "../records"
-import { readBackgrounds, type PackBackground } from "./backgrounds"
+import { readBackgrounds, readLogo, type PackBackground } from "./backgrounds"
 
 export const PACK_FORMAT = 1
 
@@ -73,6 +73,8 @@ export interface PackManifest {
   optimum?: string
   /** Main menu backgrounds the server offers; empty when it offers none. */
   backgrounds: PackBackground[]
+  /** The server's main menu logo; absent when players keep the game's own. */
+  logo?: { sha256: string }
 }
 
 const OPTIMUM_TARGET_PATTERN = /^(latest|\d+\.\d+\.\d+)$/
@@ -179,6 +181,7 @@ export function parsePackManifest(text: string): ParsePackManifestResult {
       mods: entries,
       optional: readOptionalEntries(raw["optional"], seen),
       backgrounds: readBackgrounds(raw["backgrounds"]),
+      ...(readLogo(raw["logo"]) ? { logo: readLogo(raw["logo"]) } : {}),
       ...(optimum ? { optimum } : {})
     }
   }

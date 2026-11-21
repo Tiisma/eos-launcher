@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
 import { describe, it } from "vitest"
 
-import { BACKGROUNDS_STATE_FILE_NAME, isBackgroundFileName, parseBackgroundsState, planBackgrounds, readBackgrounds } from "@domain/sombreterre/backgrounds"
+import { BACKGROUNDS_STATE_FILE_NAME, isBackgroundFileName, parseBackgroundsState, planBackgrounds, readBackgrounds, readLogo } from "@domain/sombreterre/backgrounds"
 import { backgroundUrl } from "@src/ipc/sombreterreBackgrounds"
 
 const A = "a".repeat(64)
@@ -28,6 +28,14 @@ describe("readBackgrounds", () => {
     assert.equal(isBackgroundFileName("a..png"), false)
     assert.equal(isBackgroundFileName("sub/eos.png"), false)
     assert.equal(isBackgroundFileName(".hidden.png"), false)
+  })
+})
+
+describe("readLogo", () => {
+  it("reads the logo's digest, and nothing from an unreadable entry", () => {
+    assert.deepEqual(readLogo({ sha256: A.toUpperCase() }), { sha256: A })
+    assert.equal(readLogo({ sha256: "nope" }), undefined)
+    assert.equal(readLogo(undefined), undefined)
   })
 })
 

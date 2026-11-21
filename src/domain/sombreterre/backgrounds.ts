@@ -11,6 +11,9 @@ import { isRecord } from "../records"
 /** The Installation's folder, read by the client mod (and its startup hook) for the main menu. */
 export const BACKGROUNDS_FOLDER_NAME = "EoSBackgrounds"
 
+/** The Installation's copy of the server's title logo, read by the client mod for the main menu. */
+export const LOGO_FILE_NAME = "EoSLogo.png"
+
 /** What the launcher remembers of the folder, so an unchanged picture is neither hashed nor fetched again. */
 export const BACKGROUNDS_STATE_FILE_NAME = ".eos-backgrounds.json"
 
@@ -29,6 +32,13 @@ const SHA256_PATTERN = /^[0-9a-f]{64}$/
 /** True for a picture name the launcher may write into the folder: what the gate itself accepts. */
 export function isBackgroundFileName(name: string): boolean {
   return BACKGROUND_NAME_PATTERN.test(name) && !name.includes("..")
+}
+
+/** The manifest's `logo`: its digest, or undefined when the server has none (or an unreadable one). */
+export function readLogo(value: unknown): { sha256: string } | undefined {
+  if (!isRecord(value) || typeof value["sha256"] !== "string") return undefined
+  const digest = value["sha256"].toLowerCase()
+  return SHA256_PATTERN.test(digest) ? { sha256: digest } : undefined
 }
 
 /** The manifest's `backgrounds`. Unreadable rows are passed over: a picture is never worth refusing the pack. */
