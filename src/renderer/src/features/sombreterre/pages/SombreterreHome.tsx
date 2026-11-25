@@ -12,6 +12,7 @@ import { useSombreterrePlay } from "@renderer/features/sombreterre/hooks/useSomb
 import { useLauncherUpdate } from "@renderer/features/sombreterre/hooks/useLauncherUpdate"
 import ClearCacheButton from "@renderer/features/sombreterre/components/ClearCacheButton"
 import LauncherUpdateBanner from "@renderer/features/sombreterre/components/LauncherUpdateBanner"
+import MetricsConsentDialog from "@renderer/features/sombreterre/components/MetricsConsentDialog"
 import OptionalModsButton from "@renderer/features/sombreterre/components/OptionalModsButton"
 import type { SombreterrePhase } from "@renderer/features/sombreterre/hooks/useSombreterrePlay"
 
@@ -110,7 +111,6 @@ function SombreterreHome(): JSX.Element {
             variant="primary"
             size="lg"
             className="h-16 w-80 text-xl"
-            disabled={gate.linking}
             onClick={() => {
               void gate.link()
             }}
@@ -120,10 +120,14 @@ function SombreterreHome(): JSX.Element {
           </NormalButton>
         )}
 
-        <p className="text-zinc-300 text-sm min-h-5 max-w-lg">{!linked && gate.account !== undefined ? t("features.sombreterre.discord.why") : statusLine}</p>
+        <p className="text-zinc-300 text-sm min-h-5 max-w-lg">
+          {!linked && gate.account !== undefined ? t(gate.linking ? "features.sombreterre.discord.retry" : "features.sombreterre.discord.why") : statusLine}
+        </p>
 
         <LauncherUpdateBanner state={launcherUpdate.state} />
       </div>
+
+      <MetricsConsentDialog />
     </div>
   )
 }

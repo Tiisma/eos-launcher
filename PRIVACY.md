@@ -1,6 +1,6 @@
 # The Exiles of Shadowland - Launcher: Privacy Policy
 
-Last updated: 2026-11-03 (revised after the security review)
+Last updated: 2026-11-25 (anonymous metrics, only with your agreement)
 
 This policy explains what information **The Exiles of Shadowland - Launcher** (the "launcher") handles, and what the server's gate, the part of The Exiles of Shadowland game server the launcher talks to, keeps about you. The launcher is a fork of [RiftLauncher](https://github.com/StratumServer/RiftLauncher), maintained for The Exiles of Shadowland roleplay server. Its source code is at [github.com/Tiisma/eos-launcher](https://github.com/Tiisma/eos-launcher), and the gate's at [github.com/Tiisma/eos-gate](https://github.com/Tiisma/eos-gate).
 
@@ -20,11 +20,13 @@ The launcher keeps its configuration, logs and caches in `%APPDATA%\EoSLauncher`
 
 **Logs.** Logs contain operational messages and errors. Recognized passwords, tokens, authorization values and file paths are redacted before writing, but review a log before sharing it. The launcher never uploads logs.
 
+**Your answer to the metrics question.** The launcher keeps it in `sombreterre-metrics.json` beside its configuration, and writes it into the installation's `ModConfig\sombreterre-metrics.json` before each Play, where the `sombreterregate` client mod reads it.
+
 **Mods run code on your computer.** Pressing Play installs the mods the server lists. Like any Vintage Story mod, they are programs that run with your user's rights when the game starts. The launcher checks every archive against the SHA-256 the server publishes, which proves you got what the server lists, not that what it lists is harmless. Only play on a server you trust.
 
 ## Requests to external services
 
-- **The Exiles of Shadowland gate** (`eos-gate.duckdns.org`, HTTPS): the home screen asks for the number of players online and, once you are linked, whether your Discord account may play. Linking, launch tickets, the mod pack and the server's own mods are requested from it. The launcher token is sent to this address and nowhere else.
+- **The Exiles of Shadowland gate** (`eos-gate.duckdns.org`, HTTPS): the home screen asks for the number of players online and, once you are linked, whether your Discord account may play. Linking, launch tickets, the mod pack and the server's own mods are requested from it. The launcher token is sent to this address and nowhere else. If you agreed to anonymous metrics, they are sent here too, without the token (see below).
 - **Discord**: linking opens Discord's own authorization page in your browser. You sign in to Discord there, never in the launcher. The launcher only asks for the `identify` scope, which gives the gate your Discord user ID and name.
 - **Vintage Story** (`api.vintagestory.at`, `cdn.vintagestory.at`): the list of game versions, read when the home screen opens, and the game download when it is not installed yet.
 - **Optimum** (GitHub releases of `StratumServer/Optimum`): the performance patch applied to the game when it is first installed.
@@ -33,6 +35,20 @@ The launcher keeps its configuration, logs and caches in `%APPDATA%\EoSLauncher`
 - **GitHub** (releases of `Tiisma/eos-launcher`): at startup and every 30 minutes while it is open, the launcher reads the latest release to see whether a newer launcher exists, and downloads it if so. Nothing about you or your account is sent.
 
 These services can receive normal connection metadata, such as your IP address, request times and protocol information. See the [Vintage Story Privacy Policy](https://www.vintagestory.at/privacy/), the [Discord Privacy Policy](https://discord.com/privacy) and the [GitHub General Privacy Statement](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement).
+
+## Anonymous metrics (only if you agree)
+
+The first time the launcher opens, it asks whether you agree to send anonymous technical data to help fix bugs and improve the server. Neither answer is chosen for you, and **nothing is sent until you answer yes**. You can change your answer at any time in the launcher's settings (**Anonymous data**); from then on nothing more is sent.
+
+If you agree:
+
+- **The launcher**, on each Play: its version, the game and Optimum versions, your operating system and its major version, your CPU model and number of threads, your GPU model, your RAM rounded to the gigabyte, how long installing the game and syncing the pack took, and a short code when a launch fails (for example `ticket:not-whitelisted`).
+- **The game** (the `sombreterregate` client mod), once per session, ten minutes into play: your frame rate (average and lowest), how long joining took, and the memory the game uses.
+- **Crash reports**: after the game closed, if it wrote a crash file during that session, the launcher sends the error type, the mod the game blamed, and the error trace. Before it leaves your computer, the trace is cleaned of file paths, e-mail and IP addresses, tokens, your launcher accounts' names, e-mails and UIDs, and your system user and computer names.
+
+What is never sent: your name, game or Discord account, launcher token, files, worlds, chat or logs other than the cleaned crash trace. The launcher sends these reports without its token, so the gate cannot tie them to an account. The gate keeps only the listed fields (anything else is dropped), cleans crash traces a second time, keeps no IP address with them, rounds their time down to the hour, and does not write their requests to the proxy's log. They are stored on the game server only and **deleted after 30 days**. The staff reads them as a weekly summary (averages, the most common hardware and the most frequent crashes) in a staff-only Discord channel.
+
+Because nothing in them points to you, the staff cannot find or delete your own reports on request; they disappear by themselves after 30 days.
 
 ## What the gate keeps about you
 
@@ -49,7 +65,7 @@ It reads your membership of the server's Discord guild and your roles through th
 
 ## What the launcher does not do
 
-It has no advertising, telemetry, analytics or crash reporting. It does not sell personal information and does not send your worlds, backups, mods, logs or configuration files to anyone.
+It has no advertising and no tracking. The only telemetry is the anonymous metrics above, sent only if you agree. It does not sell personal information and does not send your worlds, backups, mods, logs or configuration files to anyone.
 
 ## Retention and deletion
 
@@ -67,4 +83,4 @@ This policy is updated when the launcher's or the gate's data handling changes; 
 
 ## Implementation references
 
-[Account login](src/ipc/handlers/accountHandlers.ts), [encrypted account storage](src/ipc/accountStore.ts), [Discord link and launch tickets](src/ipc/sombreterreGate.ts), [pack sync](src/ipc/sombreterrePack.ts), [network allow-list](src/ipc/validation.ts), and the gate's [HTTP API](https://github.com/Tiisma/eos-gate/blob/sombreterre-gate/Th3Essentials/Sombreterre/GateHttpApi.cs).
+[Account login](src/ipc/handlers/accountHandlers.ts), [encrypted account storage](src/ipc/accountStore.ts), [Discord link and launch tickets](src/ipc/sombreterreGate.ts), [pack sync](src/ipc/sombreterrePack.ts), [anonymous metrics](src/ipc/sombreterreMetrics.ts) and what the gate keeps of them ([MetricsBook.cs](https://github.com/Tiisma/eos-gate/blob/sombreterre-gate/Th3Essentials/Sombreterre/MetricsBook.cs)), [network allow-list](src/ipc/validation.ts), and the gate's [HTTP API](https://github.com/Tiisma/eos-gate/blob/sombreterre-gate/Th3Essentials/Sombreterre/GateHttpApi.cs).

@@ -185,14 +185,27 @@ export function startLoopbackListener(): Promise<LoopbackListener> {
   })
 }
 
-function linkFailureReason(error: unknown): Extract<SombreterreLinkResult, { ok: false }>["reason"] {
+function linkFailure(error: unknown): Extract<SombreterreLinkResult, { ok: false }> {
   const status = statusOf(error)
-  if (status === 426) return "launcher-outdated"
-  if (status === 429) return "busy"
-  if (status === 423) return "locked-down"
-  if (status === 503) return "not-configured"
-  return "unreachable"
+  if (status === 426) return { ok: false, reason: "launcher-outdated" }
+  if (status === 429) {
+    const seconds = error instanceof BoundedResponseError ? retryAfterOf(error) : undefined
+    return seconds !== undefined ? { ok: false, reason: "busy", retryAfterSeconds: seconds } : { ok: false, reason: "busy" }
+  }
+  if (status === 423) return { ok: false, reason: "locked-down" }
+  if (status === 503) return { ok: false, reason: "not-configured" }
+  return { ok: false, reason: "unreachable" }
 }
+
+/** The wait the gate asked for with a 429 (its Retry-After header), in seconds. */
+export function retryAfterOf(error: BoundedResponseError): number | undefined {
+  const header = error.headers["retry-after"]
+  const seconds = Number(Array.isArray(header) ? header[0] : header)
+  return Number.isInteger(seconds) && seconds > 0 && seconds < 86_400 ? seconds : undefined
+}
+
+/** Each link attempt's number. Starting a new one ends the one before, which may be waiting on a browser that crashed. */
+let currentLinkAttempt = 0
 
 /**
  * Links this launcher to a Discord account. The browser does the Discord part. The launcher proves
@@ -200,6 +213,7 @@ function linkFailureReason(error: unknown): Extract<SombreterreLinkResult, { ok:
  * code its loopback listener receives from the browser (see {@link startLoopbackListener}).
  */
 export async function linkDiscord(): Promise<SombreterreLinkResult> {
+  const attempt = ++currentLinkAttempt
   const verifier = randomBytes(32).toString("base64url")
   const verifierHash = createHash("sha256").update(verifier, "utf8").digest("hex")
 
@@ -220,7 +234,7 @@ export async function linkDiscord(): Promise<SombreterreLinkResult> {
       session = body["session"]
       url = body["url"]
     } catch (error) {
-      return { ok: false, reason: linkFailureReason(error) }
+      return linkFailure(error)
     }
 
     // Only the gate's own start page is opened, whatever the server answered.
@@ -234,6 +248,7 @@ export async function linkDiscord(): Promise<SombreterreLinkResult> {
     const deadline = Date.now() + LINK_TIMEOUT_MS
     while (Date.now() < deadline) {
       await new Promise((resolve) => setTimeout(resolve, LINK_POLL_INTERVAL_MS))
+      if (attempt !== currentLinkAttempt) return { ok: false, reason: "cancelled" }
       let body: unknown
       try {
         body = await gateRequest("api/link/poll", "POST", { body: { session, verifier, ...(handoff ? { handoff } : {}) } })
@@ -253,6 +268,19 @@ export async function linkDiscord(): Promise<SombreterreLinkResult> {
     return { ok: false, reason: "expired" }
   } finally {
     listener.close()
+  }
+}
+
+/**
+ * Sends one anonymous metrics report to the gate. Never with the launcher token, so that nothing ties
+ * it to the player's Discord or game account. Answers false when the gate did not take it.
+ */
+export async function postGateMetrics(report: Record<string, unknown>): Promise<boolean> {
+  try {
+    await gateRequest("api/metrics", "POST", { body: report })
+    return true
+  } catch {
+    return false
   }
 }
 

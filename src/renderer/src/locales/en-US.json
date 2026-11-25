@@ -942,14 +942,26 @@
           "refused": "Discord not linked: Discord did not confirm the connection. Click Link my Discord to try again.",
           "busy": "Discord not linked: too many attempts in a short time. Wait a few minutes, then try again.",
           "locked-down": "Discord not linked: the staff has temporarily closed new links. Check The Exiles of Shadowland Discord.",
-          "launcher-outdated": "Discord not linked: this launcher is out of date. Install the latest version from https://github.com/Tiisma/eos-launcher/releases/latest"
+          "launcher-outdated": "Discord not linked: this launcher is out of date. Install the latest version from https://github.com/Tiisma/eos-launcher/releases/latest",
+          "busyFor": "Discord not linked: too many attempts. Try again in {{minutes}} min."
         },
         "membership": {
           "not-whitelisted": "Your whitelist has not been validated yet. Check The Exiles of Shadowland Discord.",
           "not-member": "Join The Exiles of Shadowland Discord server to play.",
           "discord-unavailable": "The server cannot reach Discord right now. Try again in a moment.",
           "unreachable": "The server did not answer. Try again in a moment."
-        }
+        },
+        "retry": "Browser closed or crashed? Click again to start the link over."
+      },
+      "metrics": {
+        "title": "Help us improve The Exiles of Shadowland",
+        "question": "Would you like to send anonymous technical data: game performance, hardware, loading times and crash reports?",
+        "why": "It helps us fix bugs and make the server smoother for everyone.",
+        "privacy": "No name, account, IP address or identifier is kept, and everything is deleted after 30 days. You can change your mind at any time in the settings.",
+        "yes": "Yes, I'll help",
+        "no": "No thanks",
+        "setting": "Anonymous data",
+        "settingDesc": "Sends the server anonymous technical data (performance, hardware, loading times, crashes) to help fix bugs. No name, account or IP address is kept, and everything is deleted after 30 days."
       }
     }
   },

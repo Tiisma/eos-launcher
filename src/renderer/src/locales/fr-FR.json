@@ -977,14 +977,26 @@
           "refused": "Discord non lié : Discord n'a pas confirmé la connexion. Clique sur Lier mon Discord pour réessayer.",
           "busy": "Discord non lié : trop de tentatives en peu de temps. Attends quelques minutes, puis réessaie.",
           "locked-down": "Discord non lié : l'équipe a temporairement fermé les nouvelles liaisons. Consulte le Discord de The Exiles of Shadowland.",
-          "launcher-outdated": "Discord non lié : ce launcher n'est plus à jour. Installe la dernière version depuis https://github.com/Tiisma/eos-launcher/releases/latest"
+          "launcher-outdated": "Discord non lié : ce launcher n'est plus à jour. Installe la dernière version depuis https://github.com/Tiisma/eos-launcher/releases/latest",
+          "busyFor": "Discord non lié : trop de tentatives. Réessaie dans {{minutes}} min."
         },
         "membership": {
           "not-whitelisted": "Ta whitelist n'a pas encore été validée. Consulte le Discord de The Exiles of Shadowland.",
           "not-member": "Rejoins le serveur Discord de The Exiles of Shadowland pour jouer.",
           "discord-unavailable": "Le serveur n'arrive pas à joindre Discord pour le moment. Réessaie dans un instant.",
           "unreachable": "Le serveur n'a pas répondu. Réessaie dans un instant."
-        }
+        },
+        "retry": "Navigateur fermé ou planté ? Clique à nouveau pour relancer la liaison."
+      },
+      "metrics": {
+        "title": "Aidez-nous à améliorer Les Exilés de Sombreterre",
+        "question": "Acceptez-vous d'envoyer des données techniques anonymes : performances du jeu, matériel, temps de chargement et rapports de plantage ?",
+        "why": "Elles nous aident à corriger les bugs et à rendre le serveur plus fluide pour tous.",
+        "privacy": "Aucun nom, compte, adresse IP ni identifiant n'est conservé, et tout est supprimé après 30 jours. Vous pourrez changer d'avis à tout moment dans les paramètres.",
+        "yes": "Oui, j'aide le serveur",
+        "no": "Non merci",
+        "setting": "Données anonymes",
+        "settingDesc": "Envoie au serveur des données techniques anonymes (performances, matériel, temps de chargement, plantages) pour l'aider à corriger les bugs. Aucun nom, compte ni adresse IP n'est conservé, et tout est supprimé après 30 jours."
       }
     }
   },

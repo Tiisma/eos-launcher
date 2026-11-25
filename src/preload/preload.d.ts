@@ -106,6 +106,11 @@ declare global {
       optionalMods: () => Promise<SombreterreOptionalMod[] | null>
       chooseOptionalMod: (modid: string, chosen: boolean) => Promise<void>
       clearGameCache: () => Promise<SombreterreClearCacheResult>
+      /** The player's answer to the anonymous metrics question; nothing is sent until it is "yes". */
+      metricsConsent: () => Promise<SombreterreMetricsConsent>
+      setMetricsConsent: (consent: boolean) => Promise<void>
+      /** Sends the anonymous report of one launch, when the player agreed. */
+      reportLaunch: (launch: SombreterreLaunchMetrics) => Promise<void>
     }
     optimumManager: {
       /** Optimum's published overlay for this machine, or the one reason no Optimum is offered this session. Never rejects. */

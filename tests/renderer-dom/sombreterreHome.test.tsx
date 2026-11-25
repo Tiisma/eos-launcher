@@ -44,6 +44,25 @@ describe("the Sombreterre home screen", () => {
     await waitFor(() => expect(api.sombreterre.linkDiscord).toHaveBeenCalledTimes(1))
   })
 
+  it("lets the player start the link over while an earlier one still waits on a crashed browser", async () => {
+    const api = renderHome({ linked: false })
+    // The first attempt never comes back on its own; the second replaces it, and only the second's answer shows.
+    let first = true
+    vi.mocked(api.sombreterre.linkDiscord).mockImplementation(async () => {
+      if (first) {
+        first = false
+        return new Promise<SombreterreLinkResult>(() => {})
+      }
+      return { ok: true as const, discordName: "alice", persisted: true }
+    })
+    const user = userEvent.setup()
+
+    await user.click(await screen.findByRole("button", { name: "Link my Discord" }))
+    expect(await screen.findByText("Browser closed or crashed? Click again to start the link over.")).toBeTruthy()
+    await user.click(screen.getByRole("button", { name: "Link my Discord" }))
+    await waitFor(() => expect(api.sombreterre.linkDiscord).toHaveBeenCalledTimes(2))
+  })
+
   it("keeps Play locked and says why while the whitelist is pending", async () => {
     renderHome({ linked: true, discordName: "alice", membership: "not-whitelisted" })
 

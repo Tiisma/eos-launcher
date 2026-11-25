@@ -100,7 +100,10 @@ const api: BridgeAPI = {
     prepareLaunch: (installationPath: string): Promise<SombreterreTicketResult> => ipcRenderer.invoke(IPC_CHANNELS.SOMBRETERRE.PREPARE_LAUNCH, installationPath),
     optionalMods: (): Promise<SombreterreOptionalMod[] | null> => ipcRenderer.invoke(IPC_CHANNELS.SOMBRETERRE.OPTIONAL_MODS),
     chooseOptionalMod: (modid: string, chosen: boolean): Promise<void> => ipcRenderer.invoke(IPC_CHANNELS.SOMBRETERRE.CHOOSE_OPTIONAL_MOD, modid, chosen),
-    clearGameCache: (): Promise<SombreterreClearCacheResult> => ipcRenderer.invoke(IPC_CHANNELS.SOMBRETERRE.CLEAR_GAME_CACHE)
+    clearGameCache: (): Promise<SombreterreClearCacheResult> => ipcRenderer.invoke(IPC_CHANNELS.SOMBRETERRE.CLEAR_GAME_CACHE),
+    metricsConsent: (): Promise<SombreterreMetricsConsent> => ipcRenderer.invoke(IPC_CHANNELS.SOMBRETERRE.METRICS_CONSENT),
+    setMetricsConsent: (consent: boolean): Promise<void> => ipcRenderer.invoke(IPC_CHANNELS.SOMBRETERRE.SET_METRICS_CONSENT, consent),
+    reportLaunch: (launch: SombreterreLaunchMetrics): Promise<void> => ipcRenderer.invoke(IPC_CHANNELS.SOMBRETERRE.REPORT_LAUNCH, launch)
   },
   optimumManager: {
     getManifest: (): Promise<OptimumManifestResult> => ipcRenderer.invoke(IPC_CHANNELS.OPTIMUM_MANAGER.GET_MANIFEST),

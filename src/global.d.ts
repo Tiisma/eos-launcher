@@ -1027,6 +1027,12 @@ declare global {
 
   type PackSyncResult = { ok: true; downloaded: number; kept: number; removed: number } | PackSyncFailure
 
+  /** The player's answer to the anonymous metrics question. See src/ipc/sombreterreMetrics.ts. */
+  type SombreterreMetricsConsent = "unanswered" | "yes" | "no"
+
+  /** How one launch through the Play button went, for the anonymous metrics. Durations in seconds. */
+  type SombreterreLaunchMetrics = { installSeconds?: number; syncSeconds?: number; optimumVersion?: string; launchError?: string }
+
   /** Players on the Sombreterre server, as its gate API reports them. See src/ipc/sombreterreGate.ts. */
   type SombreterreServerStatus = { ok: true; online: number; max: number } | { ok: false }
 
@@ -1042,7 +1048,11 @@ declare global {
 
   type SombreterreLinkResult =
     | { ok: true; discordName: string; persisted: boolean }
-    | { ok: false; reason: "unreachable" | "not-configured" | "expired" | "refused" | "busy" | "locked-down" | "launcher-outdated" }
+    | { ok: false; reason: "unreachable" | "not-configured" | "expired" | "refused" | "locked-down" | "launcher-outdated" }
+    /** Too many attempts from this address: the gate says how long to wait, when it does. */
+    | { ok: false; reason: "busy"; retryAfterSeconds?: number }
+    /** A newer attempt replaced this one (the player clicked again, after a browser crash for instance). */
+    | { ok: false; reason: "cancelled" }
 
   type SombreterreTicketResult =
     | { ok: true }
