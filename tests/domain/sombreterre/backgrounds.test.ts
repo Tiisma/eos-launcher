@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
 import { describe, it } from "vitest"
 
-import { BACKGROUNDS_STATE_FILE_NAME, isBackgroundFileName, parseBackgroundsState, planBackgrounds, readBackgrounds, readLogo } from "@domain/sombreterre/backgrounds"
+import { BACKGROUNDS_STATE_FILE_NAME, isBackgroundFileName, isMenuFileName, parseBackgroundsState, planBackgrounds, readBackgrounds, readLogo, readMenuFiles } from "@domain/sombreterre/backgrounds"
 import { backgroundUrl } from "@src/ipc/sombreterreBackgrounds"
 
 const A = "a".repeat(64)
@@ -28,6 +28,27 @@ describe("readBackgrounds", () => {
     assert.equal(isBackgroundFileName("a..png"), false)
     assert.equal(isBackgroundFileName("sub/eos.png"), false)
     assert.equal(isBackgroundFileName(".hidden.png"), false)
+  })
+})
+
+describe("readMenuFiles", () => {
+  it("keeps tips and panel texts, per language or not, and nothing else", () => {
+    const list = readMenuFiles([
+      { file: "tips.txt", sha256: A },
+      { file: "panel.fr.txt", sha256: B },
+      { file: "notes.txt", sha256: A },
+      { file: "tips.FR.txt", sha256: A },
+      { file: "../tips.txt", sha256: A }
+    ])
+    assert.deepEqual(
+      list.map((entry) => entry.file),
+      ["tips.txt", "panel.fr.txt"]
+    )
+    assert.equal(isMenuFileName("tips.en.txt"), true)
+  })
+
+  it("keeps a menu text's state across Plays", () => {
+    assert.deepEqual(parseBackgroundsState(JSON.stringify({ "tips.txt": A }), isMenuFileName), { "tips.txt": A })
   })
 })
 

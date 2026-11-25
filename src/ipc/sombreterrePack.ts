@@ -10,7 +10,7 @@ import { SOMBRETERRE_PROFILE } from "@domain/sombreterre/profile"
 import { writeJsonAtomic } from "@src/ipc/atomicJsonFile"
 import { BoundedResponseError, requestBoundedBuffer, requestBoundedText } from "@src/ipc/network"
 import { allowedSombreterreUrl, gateRequestHeaders, isGateOrigin } from "@src/ipc/sombreterreGate"
-import { syncBackgrounds, syncLogo } from "@src/ipc/sombreterreBackgrounds"
+import { syncBackgrounds, syncLogo, syncMenuFiles } from "@src/ipc/sombreterreBackgrounds"
 import { installStartupHook } from "@src/ipc/sombreterreStartupHook"
 import { MODS_API_TIMEOUT_MS } from "@src/ipc/validation"
 import { getErrorMessage, logMessage } from "@src/utils/logManager"
@@ -242,6 +242,7 @@ export async function syncSombreterrePack(installationPath: string, onProgress: 
   await installStartupHook(installationPath)
   await syncBackgrounds(installationPath, parsed.manifest.backgrounds, manifestUrl, await headersFor(manifestUrl))
   await syncLogo(installationPath, parsed.manifest.logo, manifestUrl, await headersFor(manifestUrl))
+  await syncMenuFiles(installationPath, parsed.manifest.menu, manifestUrl, await headersFor(manifestUrl))
 
   logMessage("info", `${LOG_PREFIX} [syncSombreterrePack] Pack in place: ${plan.download.length} downloaded, ${plan.keep.length} kept, ${plan.remove.length} removed.`)
   return { ok: true, downloaded: plan.download.length, kept: plan.keep.length, removed: plan.remove.length }

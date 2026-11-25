@@ -11,6 +11,16 @@ import { isRecord } from "../records"
 /** The Installation's folder, read by the client mod (and its startup hook) for the main menu. */
 export const BACKGROUNDS_FOLDER_NAME = "EoSBackgrounds"
 
+/** The Installation's folder of main menu texts (tips, panel), read by the client mod. */
+export const MENU_FOLDER_NAME = "EoSMenu"
+export const MAX_MENU_FILE_BYTES = 64 * 1024
+const MENU_FILE_NAME_PATTERN = /^(tips|panel)(\.[a-z]{2})?\.txt$/
+
+/** True for a menu text name the launcher may write into its folder: what the gate itself accepts. */
+export function isMenuFileName(name: string): boolean {
+  return MENU_FILE_NAME_PATTERN.test(name)
+}
+
 /** The Installation's copy of the server's title logo, read by the client mod for the main menu. */
 export const LOGO_FILE_NAME = "EoSLogo.png"
 
@@ -43,6 +53,15 @@ export function readLogo(value: unknown): { sha256: string } | undefined {
 
 /** The manifest's `backgrounds`. Unreadable rows are passed over: a picture is never worth refusing the pack. */
 export function readBackgrounds(value: unknown): PackBackground[] {
+  return readListedFiles(value, isBackgroundFileName)
+}
+
+/** The manifest's `menu`: the server's tips and panel texts, read like the backgrounds. */
+export function readMenuFiles(value: unknown): PackBackground[] {
+  return readListedFiles(value, isMenuFileName)
+}
+
+function readListedFiles(value: unknown, isAllowedName: (name: string) => boolean): PackBackground[] {
   if (!Array.isArray(value)) return []
   const seen = new Set<string>()
   const list: PackBackground[] = []
@@ -50,7 +69,7 @@ export function readBackgrounds(value: unknown): PackBackground[] {
     if (list.length >= MAX_BACKGROUNDS) break
     if (!isRecord(row)) continue
     const { file, sha256 } = row
-    if (typeof file !== "string" || !isBackgroundFileName(file) || typeof sha256 !== "string") continue
+    if (typeof file !== "string" || !isAllowedName(file) || typeof sha256 !== "string") continue
     const digest = sha256.toLowerCase()
     if (!SHA256_PATTERN.test(digest) || seen.has(file.toLowerCase())) continue
     seen.add(file.toLowerCase())
@@ -60,11 +79,11 @@ export function readBackgrounds(value: unknown): PackBackground[] {
 }
 
 /** The state file, or an empty one. */
-export function parseBackgroundsState(text: string | undefined): Record<string, string> {
+export function parseBackgroundsState(text: string | undefined, isAllowedName: (name: string) => boolean = isBackgroundFileName): Record<string, string> {
   try {
     const raw: unknown = text === undefined ? {} : JSON.parse(text)
     if (!isRecord(raw)) return {}
-    return Object.fromEntries(Object.entries(raw).filter((entry): entry is [string, string] => isBackgroundFileName(entry[0]) && typeof entry[1] === "string"))
+    return Object.fromEntries(Object.entries(raw).filter((entry): entry is [string, string] => isAllowedName(entry[0]) && typeof entry[1] === "string"))
   } catch {
     return {}
   }
