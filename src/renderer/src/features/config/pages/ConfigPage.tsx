@@ -131,6 +131,16 @@ function ConfigPage(): JSX.Element {
 
             <FromGroup>
               <FormHead>
+                <FormLabel content={t("features.sombreterre.metrics.setting")} className="max-h-6" />
+              </FormHead>
+
+              <FormBody>
+                <MetricsConsentToggle />
+              </FormBody>
+            </FromGroup>
+
+            <FromGroup>
+              <FormHead>
                 <FormLabel content={t("features.config.measurePlaySessions")} className="max-h-6" />
               </FormHead>
 
@@ -234,6 +244,34 @@ function ConfigPage(): JSX.Element {
         </FromWrapper>
       </div>
     </ScrollableContainer>
+  )
+}
+
+/**
+ * The player's answer to the anonymous metrics question (see MetricsConsentDialog), changed at will.
+ * Read and written straight through IPC: it is not part of the launcher's config file.
+ */
+function MetricsConsentToggle(): JSX.Element {
+  const { t } = useTranslation()
+  const [consent, setConsent] = useState<SombreterreMetricsConsent | undefined>()
+
+  useEffect(() => {
+    void window.api.sombreterre.metricsConsent().then(setConsent)
+  }, [])
+
+  return (
+    <FormFieldGroupWithDescription alignment="x">
+      <FormToggle
+        title={t("features.sombreterre.metrics.settingDesc")}
+        value={consent === "yes"}
+        disabled={consent === undefined}
+        onChange={(value) => {
+          setConsent(value ? "yes" : "no")
+          void window.api.sombreterre.setMetricsConsent(value)
+        }}
+      />
+      <FormFieldDescription content={t("features.sombreterre.metrics.settingDesc")} />
+    </FormFieldGroupWithDescription>
   )
 }
 

@@ -10,6 +10,7 @@ import { writeJsonAtomic } from "@src/ipc/atomicJsonFile"
 import { IPC_CHANNELS } from "@src/ipc/ipcChannels"
 import { assertTrustedIpcSender } from "@src/ipc/ipcSecurity"
 import { TICKET_FILE_NAME, keepLaunchTicketFresh } from "@src/ipc/sombreterreGate"
+import { reportGameCrash } from "@src/ipc/sombreterreMetrics"
 import { startupHookEnvironment } from "@src/ipc/sombreterreStartupHook"
 import { assertConfiguredInstallationPath, assertManagedPath } from "@src/ipc/pathPolicy"
 import { assertString, comparablePath, parseSafeEnvironment, toWireBuildVariant, validateGameInstallation, validateGameVersion } from "@src/ipc/validation"
@@ -530,7 +531,9 @@ ipcMain.handle(IPC_CHANNELS.GAME_MANAGER.EXECUTE_GAME, async (event, version: un
   const recorder = config.measurePlaySessions && installationId ? createPlaySessionRecorder(createProcessSampler(platform, samplerOptions)) : undefined
 
   // A launch through the Play button has just written a ticket; the server's menu may need a later one.
-  const stopTicketRenewal = (await fse.pathExists(join(safeInstallation.path, "ModConfig", TICKET_FILE_NAME))) ? keepLaunchTicketFresh(safeInstallation.path) : undefined
+  const sombreterreLaunch = await fse.pathExists(join(safeInstallation.path, "ModConfig", TICKET_FILE_NAME))
+  const stopTicketRenewal = sombreterreLaunch ? keepLaunchTicketFresh(safeInstallation.path) : undefined
+  const launchedAtMs = Date.now()
 
   let outcome: GameProcessOutcome
   let session: PlaySession | undefined
@@ -557,6 +560,9 @@ ipcMain.handle(IPC_CHANNELS.GAME_MANAGER.EXECUTE_GAME, async (event, version: un
     if (stored) logMessage("info", `${LOG_PREFIX} [EXECUTE_GAME] Recorded a ${shape} play session of ${session.samples.length} readings.`)
     else logMessage("warn", `${LOG_PREFIX} [EXECUTE_GAME] Could not record this play session; the sessions file was left as it was.`)
   }
+
+  // A crash file written during this session goes out as an anonymous report, when the player agreed.
+  if (sombreterreLaunch && outcome.started) void reportGameCrash(safeInstallation.path, launchedAtMs)
 
   if (!outcome.started) logMessage("error", `${LOG_PREFIX} [EXECUTE_GAME] Failed to run Vintage Story${launchWrapper ? ` through ${launchWrapper}` : ""}: ${outcome.error ?? "unknown error"}.`)
   else logMessage("info", `${LOG_PREFIX} [EXECUTE_GAME] Vintage Story closed: ${outcome.exitCode}`)

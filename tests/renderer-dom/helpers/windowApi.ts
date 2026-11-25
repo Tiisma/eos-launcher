@@ -147,7 +147,11 @@ export function createMockWindowApi(overrides: WindowApiOverrides = {}): MockedB
       prepareLaunch: vi.fn(notMocked("sombreterre.prepareLaunch")),
       optionalMods: vi.fn(async () => []),
       chooseOptionalMod: vi.fn(notMocked("sombreterre.chooseOptionalMod")),
-      clearGameCache: vi.fn(notMocked("sombreterre.clearGameCache"))
+      clearGameCache: vi.fn(notMocked("sombreterre.clearGameCache")),
+      // Answered "no" unless a test says otherwise, so the metrics question never covers a page under test.
+      metricsConsent: vi.fn(async () => "no" as const),
+      setMetricsConsent: vi.fn(async () => {}),
+      reportLaunch: vi.fn(async () => {})
     },
     optimumManager: {
       // No Optimum unless a test says otherwise: a page that mounts without

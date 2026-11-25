@@ -96,7 +96,10 @@ export const IPC_CHANNELS = {
     PREPARE_LAUNCH: "sombreterre-prepare-launch",
     OPTIONAL_MODS: "sombreterre-optional-mods",
     CHOOSE_OPTIONAL_MOD: "sombreterre-choose-optional-mod",
-    CLEAR_GAME_CACHE: "sombreterre-clear-game-cache"
+    CLEAR_GAME_CACHE: "sombreterre-clear-game-cache",
+    METRICS_CONSENT: "sombreterre-metrics-consent",
+    SET_METRICS_CONSENT: "sombreterre-set-metrics-consent",
+    REPORT_LAUNCH: "sombreterre-report-launch"
   },
   WORLDS_MANAGER: {
     LIST: "worlds-list",

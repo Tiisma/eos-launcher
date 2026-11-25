@@ -40,6 +40,11 @@ function findGameVersion(gameVersions: readonly GameVersionType[]): GameVersionT
   return usable.find((gv) => gv.variant?.name === "Optimum") ?? usable[0]
 }
 
+/** A clock for the anonymous metrics' durations, in seconds. Only read from event handlers. */
+function seconds(): number {
+  return performance.now() / 1000
+}
+
 /** Lets the dispatches of the last step reach the refs below before the next step reads them. */
 function nextFrame(): Promise<void> {
   return new Promise((resolve) => requestAnimationFrame(() => resolve()))
@@ -72,6 +77,9 @@ export function useSombreterrePlay(): SombreterrePlay {
   const [phase, setPhase] = useState<SombreterrePhase>("idle")
   const [syncProgress, setSyncProgress] = useState<{ done: number; total: number } | undefined>()
 
+  /** Seconds the game install took during the current Play, for the anonymous metrics. */
+  const installSeconds = useRef<number | undefined>(undefined)
+
   const latest = useRef({ gameVersions, installations, foldersInUse, launchGame })
   latest.current = { gameVersions, installations, foldersInUse, launchGame }
 
@@ -102,7 +110,9 @@ export function useSombreterrePlay(): SombreterrePlay {
     const folder = firstFreeFolder(await createPathBuilderPort().join([settings.defaultVersionsFolder, name]), latest.current.foldersInUse)
 
     setPhase("installing-game")
+    const installStarted = seconds()
     if (!(await installVersion(downloadable, folder, optimum, { stayOnPage: true }))) return undefined
+    installSeconds.current = seconds() - installStarted
 
     await nextFrame()
     return findGameVersion(latest.current.gameVersions)
@@ -181,21 +191,50 @@ export function useSombreterrePlay(): SombreterrePlay {
   async function play(): Promise<void> {
     if (phase !== "idle") return
 
+    installSeconds.current = undefined
+    let syncSeconds: number | undefined
+    let optimumVersion: string | undefined
+    // Anonymous, and only sent when the player agreed: durations and a short failure code, nothing else.
+    let reported = false
+    const report = (launchError?: string): void => {
+      if (reported) return
+      reported = true
+      void window.api.sombreterre.reportLaunch({
+        ...(installSeconds.current !== undefined ? { installSeconds: installSeconds.current } : {}),
+        ...(syncSeconds !== undefined ? { syncSeconds } : {}),
+        ...(optimumVersion ? { optimumVersion } : {}),
+        ...(launchError ? { launchError } : {})
+      })
+    }
+
     try {
       const gameVersion = await ensureGameVersion()
-      if (!gameVersion) return
+      if (!gameVersion) return report("game-install")
+      optimumVersion = gameVersion.variant?.version
 
       const installation = await ensureInstallation(gameVersion)
-      if (!installation) return fail("features.sombreterre.installationFailed")
+      if (!installation) {
+        report("installation")
+        return fail("features.sombreterre.installationFailed")
+      }
 
       setPhase("syncing-mods")
       setSyncProgress(undefined)
+      const syncStarted = seconds()
       const synced = await window.api.sombreterre.syncPack(installation.path)
-      if (!synced.ok) return fail(`features.sombreterre.syncFailed.${synced.reason}`, { modid: synced.modid ?? "" })
+      syncSeconds = seconds() - syncStarted
+      if (!synced.ok) {
+        report(`sync:${synced.reason}`)
+        return fail(`features.sombreterre.syncFailed.${synced.reason}`, { modid: synced.modid ?? "" })
+      }
 
       // Fetched last, right before the game starts: an unused ticket expires, and a new one replaces it.
       const ticket = await window.api.sombreterre.prepareLaunch(installation.path)
-      if (!ticket.ok) return fail(`features.sombreterre.ticketFailed.${ticket.reason}`)
+      if (!ticket.ok) {
+        report(`ticket:${ticket.reason}`)
+        return fail(`features.sombreterre.ticketFailed.${ticket.reason}`)
+      }
+      report()
 
       setPhase("playing")
       await nextFrame()
@@ -205,6 +244,7 @@ export function useSombreterrePlay(): SombreterrePlay {
     } catch (err) {
       window.api.utils.logMessage("error", `${LOG_TAG} Error preparing the game.`)
       window.api.utils.logMessage("debug", `${LOG_TAG} Error preparing the game: ${err}`)
+      report("unexpected")
       fail("features.sombreterre.unexpectedError")
     } finally {
       setPhase("idle")

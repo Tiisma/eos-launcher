@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 
 import { useNotificationsContext } from "@renderer/contexts/NotificationsContext"
@@ -30,6 +30,8 @@ export function useSombreterreGate(): SombreterreGate {
   const [account, setAccount] = useState<SombreterreAccountState | undefined>()
   const [status, setStatus] = useState<SombreterreServerStatus | undefined>()
   const [linking, setLinking] = useState(false)
+  /** The latest click's number: only its answer is shown, an older attempt it replaced says nothing. */
+  const linkAttempt = useRef(0)
 
   const refreshAccount = useCallback(async (): Promise<void> => {
     setAccount(await window.api.sombreterre.accountState())
@@ -56,20 +58,24 @@ export function useSombreterreGate(): SombreterreGate {
     }
   }, [])
 
+  /** Starts a link. Clicking again while one waits starts over, for a browser that crashed or a tab that was closed. */
   async function link(): Promise<void> {
-    if (linking) return
+    const attempt = ++linkAttempt.current
     setLinking(true)
     try {
       const result = await window.api.sombreterre.linkDiscord()
+      if (attempt !== linkAttempt.current || (!result.ok && result.reason === "cancelled")) return
       if (result.ok) {
         addNotification(t("features.sombreterre.discord.linked", { name: result.discordName }), "success")
         if (!result.persisted) addNotification(t("features.sombreterre.discord.notPersisted"), "warning")
+      } else if (result.reason === "busy" && result.retryAfterSeconds !== undefined) {
+        addNotification(t("features.sombreterre.discord.linkFailed.busyFor", { minutes: Math.max(1, Math.ceil(result.retryAfterSeconds / 60)) }), "error")
       } else {
         addNotification(t(`features.sombreterre.discord.linkFailed.${result.reason}`), "error")
       }
       await refreshAccount()
     } finally {
-      setLinking(false)
+      if (attempt === linkAttempt.current) setLinking(false)
     }
   }
 
