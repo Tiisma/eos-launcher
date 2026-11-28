@@ -962,6 +962,10 @@
         "no": "No thanks",
         "setting": "Anonymous data",
         "settingDesc": "Sends the server anonymous technical data (performance, hardware, loading times, crashes) to help fix bugs. No name, account or IP address is kept, and everything is deleted after 30 days."
+      },
+      "optimum": {
+        "setting": "Optimum",
+        "settingDesc": "Plays with Optimum, the performance patch the server recommends. Turn it off if it causes problems: the next Play installs plain Vintage Story next to it (one more download, the first time only) and plays that. Turn it on again to go back to the Optimum version."
       }
     }
   },

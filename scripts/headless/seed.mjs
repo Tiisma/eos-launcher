@@ -239,6 +239,7 @@ const config = {
   modSuggestionsFolded: false,
   receiveBetaUpdates: null,
   measurePlaySessions: true,
+  sombreterreOptimum: true,
   allowBasicSessionStore: false,
   lastSeenChangelogVersion: spec.lastSeenChangelogVersion ?? "",
   customIcons: [],

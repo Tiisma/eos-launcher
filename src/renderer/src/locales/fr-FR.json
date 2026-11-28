@@ -997,6 +997,10 @@
         "no": "Non merci",
         "setting": "Données anonymes",
         "settingDesc": "Envoie au serveur des données techniques anonymes (performances, matériel, temps de chargement, plantages) pour l'aider à corriger les bugs. Aucun nom, compte ni adresse IP n'est conservé, et tout est supprimé après 30 jours."
+      },
+      "optimum": {
+        "setting": "Optimum",
+        "settingDesc": "Joue avec Optimum, le patch de performances recommandé par le serveur. Désactivez-le s'il pose problème : le prochain Jouer installe Vintage Story d'origine à côté (un téléchargement de plus, la première fois seulement) et lance celui-ci. Réactivez-le pour revenir à la version Optimum."
       }
     }
   },

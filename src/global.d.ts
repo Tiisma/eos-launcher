@@ -62,6 +62,12 @@ declare global {
      */
     measurePlaySessions: boolean
     /**
+     * Whether Play uses the Optimum-patched build of the Sombreterre game version. On unless the
+     * player turns it off (src/domain/sombreterre/profile.ts `optimum` is the default); off, the
+     * next Play takes Optimum out of the build again. See src/domain/sombreterre/optimum.ts.
+     */
+    sombreterreOptimum: boolean
+    /**
      * Whether the launcher may keep a session on a machine with no system keyring, where the only
      * store left seals it with a key that ships in the binary and so is readable by any program
      * running as the player. Off unless the player turns it on, and read at startup rather than on

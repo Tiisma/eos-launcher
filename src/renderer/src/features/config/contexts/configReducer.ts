@@ -22,6 +22,7 @@ export enum CONFIG_ACTIONS {
   SET_MOD_SUGGESTIONS_FOLDED = "SET_MOD_SUGGESTIONS_FOLDED",
   SET_RECEIVE_BETA_UPDATES = "SET_RECEIVE_BETA_UPDATES",
   SET_MEASURE_PLAY_SESSIONS = "SET_MEASURE_PLAY_SESSIONS",
+  SET_SOMBRETERRE_OPTIMUM = "SET_SOMBRETERRE_OPTIMUM",
   SET_ALLOW_BASIC_SESSION_STORE = "SET_ALLOW_BASIC_SESSION_STORE",
   SET_LAST_SEEN_CHANGELOG_VERSION = "SET_LAST_SEEN_CHANGELOG_VERSION",
 
@@ -174,6 +175,12 @@ export interface SetReceiveBetaUpdates {
 /** Whether the launcher measures the game process while it runs. See src/domain/sessions/sampling.ts. */
 export interface SetMeasurePlaySessions {
   type: CONFIG_ACTIONS.SET_MEASURE_PLAY_SESSIONS
+  payload: boolean
+}
+
+/** Whether Play uses the Optimum-patched build. The next Play is what acts on it. See src/domain/sombreterre/optimum.ts. */
+export interface SetSombreterreOptimum {
+  type: CONFIG_ACTIONS.SET_SOMBRETERRE_OPTIMUM
   payload: boolean
 }
 
@@ -362,6 +369,7 @@ export type ConfigAction =
   | SetModSuggestionsFolded
   | SetReceiveBetaUpdates
   | SetMeasurePlaySessions
+  | SetSombreterreOptimum
   | SetAllowBasicSessionStore
   | SetLastSeenChangelogVersion
   | AddInstallation
@@ -435,6 +443,8 @@ export const configReducer = (config: ConfigType, action: ConfigAction): ConfigT
       return { ...config, receiveBetaUpdates: action.payload }
     case CONFIG_ACTIONS.SET_MEASURE_PLAY_SESSIONS:
       return { ...config, measurePlaySessions: action.payload }
+    case CONFIG_ACTIONS.SET_SOMBRETERRE_OPTIMUM:
+      return { ...config, sombreterreOptimum: action.payload }
     case CONFIG_ACTIONS.SET_ALLOW_BASIC_SESSION_STORE:
       return { ...config, allowBasicSessionStore: action.payload }
     case CONFIG_ACTIONS.SET_LAST_SEEN_CHANGELOG_VERSION:

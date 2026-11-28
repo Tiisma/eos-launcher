@@ -58,6 +58,7 @@ export function createMockConfig(overrides: MockConfigOverrides = {}): ConfigTyp
     modSuggestionsFolded: false,
     receiveBetaUpdates: null,
     measurePlaySessions: true,
+    sombreterreOptimum: true,
     allowBasicSessionStore: false,
     lastSeenChangelogVersion: "",
     customIcons: [],

@@ -104,6 +104,7 @@ function minimalConfig(overrides: Partial<ConfigType> = {}): ConfigType {
     modSuggestionsFolded: false,
     receiveBetaUpdates: DEFAULT_RECEIVE_BETA_UPDATES,
     measurePlaySessions: DEFAULT_MEASURE_PLAY_SESSIONS,
+    sombreterreOptimum: true,
     allowBasicSessionStore: DEFAULT_ALLOW_BASIC_SESSION_STORE,
     lastSeenChangelogVersion: "",
     customIcons: [],
@@ -876,6 +877,27 @@ describe("normalizeConfig: allowBasicSessionStore", () => {
     const { getConfig } = await freshConfigManager()
     assert.equal((await getConfig()).allowBasicSessionStore, true)
     assert.equal(JSON.parse(readFileSync(join(userDataFolder, "config.json"), "utf-8")).allowBasicSessionStore, true, "and it is on disk, where main/index.ts reads it before Electron starts")
+  })
+})
+
+describe("normalizeConfig: sombreterreOptimum", () => {
+  it("reads a config written before the setting existed as Optimum on", async () => {
+    const { normalizeConfig } = await freshConfigManager()
+    assert.equal(normalizeConfig({}).sombreterreOptimum, true)
+  })
+
+  it("keeps an explicit answer, both ways round", async () => {
+    const { normalizeConfig } = await freshConfigManager()
+    assert.equal(normalizeConfig({ sombreterreOptimum: true }).sombreterreOptimum, true)
+    assert.equal(normalizeConfig({ sombreterreOptimum: false }).sombreterreOptimum, false)
+  })
+
+  it("falls back to on for anything that is not a boolean", async () => {
+    const { normalizeConfig } = await freshConfigManager()
+
+    for (const value of ["false", "no", 0, null, {}]) {
+      assert.equal(normalizeConfig({ sombreterreOptimum: value }).sombreterreOptimum, true, String(value))
+    }
   })
 })
 
