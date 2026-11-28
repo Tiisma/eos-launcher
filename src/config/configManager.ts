@@ -836,6 +836,8 @@ export function normalizeConfig(config: unknown, { atStartup = false }: { atStar
     receiveBetaUpdates: normalizeReceiveBetaUpdates(rawConfig.receiveBetaUpdates),
     // A config written before this setting existed reads as the shipped default, which is on.
     measurePlaySessions: asBoolean(rawConfig.measurePlaySessions, defaultConfig.measurePlaySessions),
+    // A config written before this setting existed reads as the shipped default, which is Optimum on.
+    sombreterreOptimum: asBoolean(rawConfig.sombreterreOptimum, defaultConfig.sombreterreOptimum),
     // Anything that is not an explicit `true`, missing included, is off. A hand-edited config that
     // says "yes" in any other spelling does not count: this one weakens where a session is kept,
     // so it takes a real answer from the toggle and nothing else.

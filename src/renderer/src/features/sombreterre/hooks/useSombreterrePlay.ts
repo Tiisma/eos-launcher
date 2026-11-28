@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next"
 import { DEFAULT_COMPRESSION_LEVEL } from "@domain/config/defaults"
 import { createInstallation } from "@domain/installations/create"
 import { firstFreeFolder, toFolderPlatform } from "@domain/paths"
-import { shouldApplyOptimum } from "@domain/sombreterre/optimum"
+import { preferredBuild, shouldApplyOptimum } from "@domain/sombreterre/optimum"
 import { SOMBRETERRE_PROFILE } from "@domain/sombreterre/profile"
 import { isInterruptedInstall } from "@domain/versions/interruptedInstall"
 import { createPathBuilderPort } from "@renderer/adapters/paths"
@@ -33,11 +33,10 @@ export interface SombreterrePlay {
 
 const SERVER_BOOKMARK: ServerBookmarkType = { ...SOMBRETERRE_PROFILE.server, lastLaunched: -1 }
 
-/** The build the profile asks for, preferring an Optimum-patched one when the profile wants Optimum. */
-function findGameVersion(gameVersions: readonly GameVersionType[]): GameVersionType | undefined {
+/** The build the profile asks for, preferring an Optimum-patched one when the player wants Optimum and a plain one otherwise. */
+function findGameVersion(gameVersions: readonly GameVersionType[], wantOptimum: boolean): GameVersionType | undefined {
   const usable = gameVersions.filter((gv) => gv.version === SOMBRETERRE_PROFILE.gameVersion && !isInterruptedInstall(gv) && !gv._installing && !gv._deleting)
-  if (!SOMBRETERRE_PROFILE.optimum) return usable.find((gv) => !gv.variant) ?? usable[0]
-  return usable.find((gv) => gv.variant?.name === "Optimum") ?? usable[0]
+  return preferredBuild(usable, wantOptimum)
 }
 
 /** A clock for the anonymous metrics' durations, in seconds. Only read from event handlers. */
@@ -73,6 +72,8 @@ export function useSombreterrePlay(): SombreterrePlay {
   const catalog = useGameVersionCatalog()
   const { launchGame } = useLaunchGame()
   const { applyOptimum } = useOptimumActions()
+  // The profile can rule Optimum out for everyone; otherwise the player's setting decides (on by default).
+  const wantOptimum = SOMBRETERRE_PROFILE.optimum && settings.sombreterreOptimum
 
   const [phase, setPhase] = useState<SombreterrePhase>("idle")
   const [syncProgress, setSyncProgress] = useState<{ done: number; total: number } | undefined>()
@@ -80,8 +81,8 @@ export function useSombreterrePlay(): SombreterrePlay {
   /** Seconds the game install took during the current Play, for the anonymous metrics. */
   const installSeconds = useRef<number | undefined>(undefined)
 
-  const latest = useRef({ gameVersions, installations, foldersInUse, launchGame })
-  latest.current = { gameVersions, installations, foldersInUse, launchGame }
+  const latest = useRef({ gameVersions, installations, foldersInUse, launchGame, wantOptimum })
+  latest.current = { gameVersions, installations, foldersInUse, launchGame, wantOptimum }
 
   useEffect(() => window.api.sombreterre.onSyncProgress((progress) => setSyncProgress(progress)), [])
 
@@ -90,7 +91,9 @@ export function useSombreterrePlay(): SombreterrePlay {
   }
 
   async function ensureGameVersion(): Promise<GameVersionType | undefined> {
-    const installed = findGameVersion(latest.current.gameVersions)
+    const wanted = latest.current.wantOptimum
+    const installed = findGameVersion(latest.current.gameVersions, wanted)
+    // With Optimum off, an Optimum build is never found here: a vanilla build is installed beside it instead.
     if (installed) return bringOptimumUpToDate(installed)
 
     const downloadable = catalog.gameVersions.find((version) => version.version === SOMBRETERRE_PROFILE.gameVersion)
@@ -100,7 +103,7 @@ export function useSombreterrePlay(): SombreterrePlay {
     }
 
     let optimum: OptimumManifestInfo | undefined
-    if (SOMBRETERRE_PROFILE.optimum) {
+    if (wanted) {
       const manifest = await window.api.optimumManager.getManifest()
       if (manifest.ok && manifest.manifest.supportedGameVersions.includes(SOMBRETERRE_PROFILE.gameVersion)) optimum = manifest.manifest
       else addNotification(t("features.sombreterre.optimumUnavailable", { version: SOMBRETERRE_PROFILE.gameVersion }), "warning")
@@ -115,7 +118,7 @@ export function useSombreterrePlay(): SombreterrePlay {
     installSeconds.current = seconds() - installStarted
 
     await nextFrame()
-    return findGameVersion(latest.current.gameVersions)
+    return findGameVersion(latest.current.gameVersions, latest.current.wantOptimum)
   }
 
   /**
@@ -125,7 +128,7 @@ export function useSombreterrePlay(): SombreterrePlay {
    * and rolls back what it wrote, so a failed update leaves the previous Optimum working.
    */
   async function bringOptimumUpToDate(installed: GameVersionType): Promise<GameVersionType | undefined> {
-    if (!SOMBRETERRE_PROFILE.optimum) return installed
+    if (!latest.current.wantOptimum) return installed
 
     const manifest = await window.api.optimumManager.getManifest()
     if (!manifest.ok || !shouldApplyOptimum(installed.variant, installed.version, manifest.manifest)) return installed
@@ -136,7 +139,7 @@ export function useSombreterrePlay(): SombreterrePlay {
     if (!updated) window.api.utils.logMessage("warn", `${LOG_TAG} Optimum not updated; playing the installed build.`)
 
     await nextFrame()
-    return findGameVersion(latest.current.gameVersions)
+    return findGameVersion(latest.current.gameVersions, latest.current.wantOptimum)
   }
 
   async function ensureInstallation(gameVersion: GameVersionType): Promise<InstallationType | undefined> {
@@ -252,5 +255,5 @@ export function useSombreterrePlay(): SombreterrePlay {
     }
   }
 
-  return { phase, syncProgress, ready: !catalog.loading || findGameVersion(gameVersions) !== undefined, play }
+  return { phase, syncProgress, ready: !catalog.loading || findGameVersion(gameVersions, wantOptimum) !== undefined, play }
 }

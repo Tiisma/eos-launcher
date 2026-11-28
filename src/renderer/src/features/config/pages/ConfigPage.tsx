@@ -139,6 +139,18 @@ function ConfigPage(): JSX.Element {
               </FormBody>
             </FromGroup>
 
+            {SOMBRETERRE_PROFILE.optimum && (
+              <FromGroup>
+                <FormHead>
+                  <FormLabel content={t("features.sombreterre.optimum.setting")} className="max-h-6" />
+                </FormHead>
+
+                <FormBody>
+                  <SombreterreOptimumToggle />
+                </FormBody>
+              </FromGroup>
+            )}
+
             <FromGroup>
               <FormHead>
                 <FormLabel content={t("features.config.measurePlaySessions")} className="max-h-6" />
@@ -271,6 +283,29 @@ function MetricsConsentToggle(): JSX.Element {
         }}
       />
       <FormFieldDescription content={t("features.sombreterre.metrics.settingDesc")} />
+    </FormFieldGroupWithDescription>
+  )
+}
+
+/**
+ * Whether Play uses the Optimum-patched build. On by default; a player for whom Optimum causes trouble
+ * turns it off, and the next Play takes Optimum out of the build in place. Turning it on again patches
+ * the build back at the next Play. See useSombreterrePlay.
+ */
+function SombreterreOptimumToggle(): JSX.Element {
+  const { t } = useTranslation()
+
+  const { sombreterreOptimum } = useSettingsConfig()
+  const configDispatch = useConfigDispatch()
+
+  return (
+    <FormFieldGroupWithDescription alignment="x">
+      <FormToggle
+        title={t("features.sombreterre.optimum.settingDesc")}
+        value={sombreterreOptimum}
+        onChange={(value) => configDispatch({ type: CONFIG_ACTIONS.SET_SOMBRETERRE_OPTIMUM, payload: value })}
+      />
+      <FormFieldDescription content={t("features.sombreterre.optimum.settingDesc")} />
     </FormFieldGroupWithDescription>
   )
 }

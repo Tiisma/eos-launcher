@@ -45,6 +45,7 @@ function baseConfig(overrides: Partial<ConfigType> = {}): ConfigType {
     modSuggestionsFolded: false,
     receiveBetaUpdates: DEFAULT_RECEIVE_BETA_UPDATES,
     measurePlaySessions: DEFAULT_MEASURE_PLAY_SESSIONS,
+    sombreterreOptimum: true,
     allowBasicSessionStore: DEFAULT_ALLOW_BASIC_SESSION_STORE,
     lastSeenChangelogVersion: "",
     customIcons: [],

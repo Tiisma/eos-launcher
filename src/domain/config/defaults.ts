@@ -4,6 +4,7 @@ import { DEFAULT_RECEIVE_BETA_UPDATES } from "../appUpdate/betaUpdates"
 import { DEFAULT_BACKGROUND_ID } from "../backgrounds"
 import { defaultModDbVisibility } from "../moddbVisibility"
 import { DEFAULT_MEASURE_PLAY_SESSIONS } from "../sessions/sampling"
+import { SOMBRETERRE_PROFILE } from "../sombreterre/profile"
 
 /**
  * Everything a fresh config holds that does not depend on the host.
@@ -36,6 +37,7 @@ export const DEFAULT_CONFIG_BASE: Omit<ConfigType, "schemaVersion" | "defaultIns
   modSuggestionsFolded: false,
   receiveBetaUpdates: DEFAULT_RECEIVE_BETA_UPDATES,
   measurePlaySessions: DEFAULT_MEASURE_PLAY_SESSIONS,
+  sombreterreOptimum: SOMBRETERRE_PROFILE.optimum,
   allowBasicSessionStore: DEFAULT_ALLOW_BASIC_SESSION_STORE,
   lastSeenChangelogVersion: "",
   customIcons: []

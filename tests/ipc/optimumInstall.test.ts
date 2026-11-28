@@ -380,6 +380,45 @@ describe("restoreVanillaBuild", () => {
     assert.equal(existsSync(join(gameDirectory, ".optimum")), false)
   })
 
+  it("puts back every other file the patch backed up, as Optimum's own rollback does", async () => {
+    const vanilla = (...parts: string[]): string => join(gameDirectory, ".optimum", "vanilla", ...parts)
+    const live = (...parts: string[]): string => join(gameDirectory, ...parts)
+    mkdirSync(vanilla("Mods"), { recursive: true })
+    writeFileSync(vanilla("VintagestoryLib.vanilla.dll"), "vanilla lib")
+    writeFileSync(vanilla("VintagestoryAPI.vanilla.dll"), "vanilla api")
+
+    // The Cairo wrapper the build had, replaced by Optimum's.
+    mkdirSync(vanilla("Lib"), { recursive: true })
+    mkdirSync(live("Lib"), { recursive: true })
+    writeFileSync(vanilla("Lib", "cairo-sharp.dll"), "vanilla cairo")
+    writeFileSync(live("Lib", "cairo-sharp.dll"), "optimum cairo")
+    // The launcher wrapper, which the build did not have.
+    writeFileSync(vanilla("Optimum.exe.absent"), "")
+    writeFileSync(live("Optimum.exe"), "optimum launcher")
+    // A merged language file, and one the build did not have.
+    mkdirSync(vanilla("assets", "game", "lang"), { recursive: true })
+    mkdirSync(live("assets", "game", "lang"), { recursive: true })
+    writeFileSync(vanilla("assets", "game", "lang", "en.json"), "vanilla en")
+    writeFileSync(live("assets", "game", "lang", "en.json"), "merged en")
+    writeFileSync(vanilla("assets", "game", "lang", "xx.json.absent"), "")
+    writeFileSync(live("assets", "game", "lang", "xx.json"), "optimum xx")
+    // Optimum's own content mod, a folder the build did not have.
+    mkdirSync(vanilla("Mods", "optimum", "assets"), { recursive: true })
+    mkdirSync(live("Mods", "optimum", "assets"), { recursive: true })
+    writeFileSync(vanilla("Mods", "optimum", "modinfo.json.absent"), "")
+    writeFileSync(live("Mods", "optimum", "modinfo.json"), "{}")
+    writeFileSync(vanilla("Mods", "optimum", "assets", "a.json.absent"), "")
+    writeFileSync(live("Mods", "optimum", "assets", "a.json"), "{}")
+
+    assert.deepEqual(await restoreVanillaBuild(gameDirectory), { ok: true })
+    assert.equal(readFileSync(live("Lib", "cairo-sharp.dll"), "utf8"), "vanilla cairo")
+    assert.equal(existsSync(live("Optimum.exe")), false)
+    assert.equal(readFileSync(live("assets", "game", "lang", "en.json"), "utf8"), "vanilla en")
+    assert.equal(existsSync(live("assets", "game", "lang", "xx.json")), false)
+    assert.equal(existsSync(live("Mods", "optimum")), false)
+    assert.equal(existsSync(live(".optimum")), false)
+  })
+
   it("refuses a folder with no backup to restore from, and changes nothing", async () => {
     assert.deepEqual(await restoreVanillaBuild(gameDirectory), { ok: false, reason: "backup-missing" })
     assert.equal(readFileSync(join(gameDirectory, "VintagestoryLib.dll"), "utf8"), "vanilla lib")

@@ -41,6 +41,22 @@ const VANILLA_BACKUPS = [
 /** Where the patch keeps its copy of the untouched assemblies, relative to the game folder. */
 const VANILLA_FOLDER = join(OPTIMUM_STATE_FOLDER, OPTIMUM_VANILLA_FOLDER)
 
+/** Suffix of the empty file the patch backs up in place of a file the build did not have. */
+const ABSENT_MARKER_SUFFIX = ".absent"
+
+/**
+ * Everything else the patch backs up besides the four assemblies, as Optimum's own rollback lists it
+ * (`Rollback` in `Optimum.Bootstrap.Core/Patch/GamePatcher.cs`). Each backup is either the file the build
+ * had, or a `.absent` marker when it had none. Missing these is not cosmetic: a build with its vanilla
+ * assemblies back next to Optimum's `Lib/cairo-sharp.dll` (deployed since 0.4) crashes on the first GUI
+ * texture upload ("A recording surface may only be used from its recording thread").
+ */
+const OPTIMUM_ASSET_FILES = [join("Lib", "cairo-sharp.dll"), "Optimum.exe", "Optimum"] as const
+/** Folders whose files the patch backs up one by one, not their subfolders. */
+const OPTIMUM_ASSET_FOLDERS = [join("assets", "game", "lang"), join("assets", "darkvision", "config", "shaderpatches")] as const
+/** Folders the patch deploys whole, subfolders included: Optimum's own client content mod. */
+const OPTIMUM_ASSET_TREES = [join("Mods", "optimum")] as const
+
 function refuse(reason: OptimumPatchFailureReason): { ok: false; reason: OptimumPatchFailureReason } {
   return { ok: false, reason }
 }
@@ -264,6 +280,37 @@ async function replaceFile(from: string, to: string): Promise<void> {
 }
 
 /**
+ * Puts one backed-up asset back: the build's own file over Optimum's, or Optimum's file out when the
+ * marker says the build had none. With `keepLive` (a build the game was updated over in place) the copy
+ * is the older build's, so only the markers are acted on.
+ */
+async function restoreAsset(gameDirectory: string, relativePath: string, keepLive: boolean): Promise<void> {
+  const backup = join(gameDirectory, VANILLA_FOLDER, relativePath)
+  const live = join(gameDirectory, relativePath)
+  if (await fse.pathExists(`${backup}${ABSENT_MARKER_SUFFIX}`)) await fse.remove(live)
+  else if (!keepLive && (await fse.pathExists(backup))) await replaceFile(backup, live)
+}
+
+/** {@link restoreAsset} for every backup in one folder of `.optimum/vanilla/`, and its subfolders when `recursive`. */
+async function restoreAssetFolder(gameDirectory: string, relativeFolder: string, keepLive: boolean, recursive: boolean): Promise<void> {
+  const backupFolder = join(gameDirectory, VANILLA_FOLDER, relativeFolder)
+  if (!(await fse.pathExists(backupFolder))) return
+
+  for (const entry of await fse.readdir(backupFolder, { withFileTypes: true })) {
+    const relativePath = join(relativeFolder, entry.name)
+    if (entry.isDirectory()) {
+      if (recursive) await restoreAssetFolder(gameDirectory, relativePath, keepLive, true)
+    } else if (entry.isFile()) {
+      await restoreAsset(gameDirectory, entry.name.endsWith(ABSENT_MARKER_SUFFIX) ? relativePath.slice(0, -ABSENT_MARKER_SUFFIX.length) : relativePath, keepLive)
+    }
+  }
+
+  // A folder the patch created (Mods/optimum) is left empty by the markers; one the build had is not.
+  const liveFolder = join(gameDirectory, relativeFolder)
+  if (recursive && (await fse.pathExists(liveFolder)) && (await fse.readdir(liveFolder)).length === 0) await fse.remove(liveFolder)
+}
+
+/**
  * Puts the four assemblies back, takes the two Optimum assemblies the patch left
  * at the game root back out, and takes the launcher's own marks off.
  *
@@ -277,9 +324,13 @@ async function replaceFile(from: string, to: string): Promise<void> {
  * is Optimum's. It is done before the state folder goes, since the copy lives
  * there, so a failure leaves the backups for a second try.
  *
- * Partial by construction, and the dialog says so: the overlaid shaders, the
- * merged language keys and anything else written into `assets/` stay until the
- * build is reinstalled. Undoing those would mean keeping a pristine copy of a
+ * Then the other files the patch backed up go back the same way Optimum's own
+ * rollback puts them (see {@link OPTIMUM_ASSET_FILES}): the Cairo wrapper, the
+ * launcher wrapper, the merged language files, the DarkVision shader patches and
+ * the `Mods/optimum` content mod.
+ *
+ * Partial by construction, and the dialog says so: the overlaid shaders, which
+ * the patch writes without a backup, stay until the build is reinstalled. Undoing those would mean keeping a pristine copy of a
  * gigabyte-sized install, which is not worth the disk to avoid one honest
  * sentence.
  *
@@ -317,6 +368,10 @@ export async function restoreVanillaBuild(gameDirectory: string, options: { only
     const gameContent = join(gameDirectory, OPTIMUM_GAME_CONTENT_ASSEMBLY)
     if (!updated && (await fse.pathExists(gameContentBackup))) await replaceFile(gameContentBackup, gameContent)
     else await fse.remove(gameContent)
+
+    for (const file of OPTIMUM_ASSET_FILES) await restoreAsset(gameDirectory, file, updated)
+    for (const folder of OPTIMUM_ASSET_FOLDERS) await restoreAssetFolder(gameDirectory, folder, updated, false)
+    for (const tree of OPTIMUM_ASSET_TREES) await restoreAssetFolder(gameDirectory, tree, updated, true)
 
     await fse.remove(join(gameDirectory, OPTIMUM_STATE_FOLDER))
   } catch {
